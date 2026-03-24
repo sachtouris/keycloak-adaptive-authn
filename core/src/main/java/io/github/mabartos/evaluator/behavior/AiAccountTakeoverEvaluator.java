@@ -1,5 +1,6 @@
 package io.github.mabartos.evaluator.behavior;
 
+import io.github.mabartos.ai.AiDataAnonymizer;
 import io.github.mabartos.context.UserContexts;
 import io.github.mabartos.context.device.DeviceRepresentationContext;
 import io.github.mabartos.context.device.DeviceRepresentationContextFactory;
@@ -150,16 +151,22 @@ public class AiAccountTakeoverEvaluator extends AbstractRiskEvaluator {
                 .orElse(List.of());
 
         context.recentLoginCount = recentLogins.size();
-        context.recentLoginIps = recentLogins.stream()
-                .map(Event::getIpAddress)
-                .distinct()
-                .collect(Collectors.toList());
+        context.recentLoginIps = AiDataAnonymizer.anonymizeIps(
+                recentLogins.stream()
+                        .map(Event::getIpAddress)
+                        .distinct()
+                        .collect(Collectors.toList())
+        );
 
-        // Current device info
+        // Current device info (anonymized)
         deviceContext.getData(realm, user).ifPresent(device -> {
-            context.currentDevice = String.format("%s on %s %s",
-                    device.getBrowser(), device.getOs(), device.getOsVersion());
-            context.currentIp = device.getIpAddress();
+            context.currentDevice = AiDataAnonymizer.anonymizeDevice(
+                    device.getBrowser(),
+                    device.getOs(),
+                    device.getOsVersion(),
+                    device.isMobile()
+            );
+            context.currentIp = AiDataAnonymizer.anonymizeIp(device.getIpAddress());
             context.isMobile = device.isMobile();
         });
 
@@ -209,7 +216,7 @@ public class AiAccountTakeoverEvaluator extends AbstractRiskEvaluator {
         return String.format("%s at %s from IP %s",
                 event.getType().toString().replace("_", " ").toLowerCase(),
                 time.toString(),
-                event.getIpAddress());
+                AiDataAnonymizer.anonymizeIp(event.getIpAddress()));
     }
 
     private String buildPrompt(BehavioralContext ctx) {
@@ -220,25 +227,28 @@ public class AiAccountTakeoverEvaluator extends AbstractRiskEvaluator {
         return String.format("""
                 Analyze this user session for potential account takeover. Look for suspicious behavioral patterns.
 
+                PRIVACY NOTE: All IP addresses and device info have been anonymized via one-way hashing.
+                Same hash = same IP/device, allowing pattern detection while protecting privacy.
+
                 CURRENT SESSION:
                 - Device: %s
-                - IP: %s
+                - IP Identifier: %s
                 - Is Mobile: %s
 
                 NORMAL BEHAVIOR BASELINE:
                 - Typical login time: %s
                 - Recent logins (24h): %d
-                - Recent IPs: %s
+                - Recent IP Identifiers: %s
                 - Multiple recent locations: %s
 
                 RECENT SENSITIVE ACTIONS (last 30 min):
                 %s
 
                 ANALYZE FOR:
-                1. Impossible travel (location changes too fast)
+                1. Location pattern changes (multiple different IP identifiers in short time)
                 2. Suspicious action sequences (e.g., change email → change password → remove MFA)
                 3. Unusual timing (sensitive actions at unusual hours)
-                4. Device fingerprint changes combined with suspicious actions
+                4. Device type changes combined with suspicious actions
                 5. Rapid succession of privilege escalation attempts
 
                 Consider the COMBINATION of factors. Individual changes are normal, but multiple red flags together indicate takeover.

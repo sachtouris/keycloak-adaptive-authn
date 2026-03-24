@@ -51,6 +51,9 @@
 </table>
 
 It should work for all OpenAI ChatGPT compatible engines, but not verified.
+
+**Privacy & GDPR Compliance:** All user data (IP addresses, device info) is automatically anonymized before being sent to AI services. See [Privacy and Anonymization Guide](docs/privacy-and-anonymization.md) for details.
+
 For more information, refer to the [Start guide](docs/start.md).
 
 ## Installation
