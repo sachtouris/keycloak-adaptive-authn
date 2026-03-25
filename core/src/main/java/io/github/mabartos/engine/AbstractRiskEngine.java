@@ -19,10 +19,12 @@ import org.keycloak.tracing.TracingProviderUtil;
 
 import java.util.EnumMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -169,7 +171,7 @@ public abstract class AbstractRiskEngine implements RiskEngine {
      * Helper class to collect evaluator results in order
      */
     protected static class EvaluatorResults {
-        private final java.util.List<EvaluatorResult> results = new java.util.concurrent.CopyOnWriteArrayList<>();
+        private final List<EvaluatorResult> results = new CopyOnWriteArrayList<>();
 
         public void add(EvaluatorResult result) {
             results.add(result);
@@ -190,7 +192,7 @@ public abstract class AbstractRiskEngine implements RiskEngine {
      * @param results optional results collector
      */
     protected void executeEvaluator(@Nonnull RiskEvaluator evaluator, @Nonnull RealmModel realm, @Nullable UserModel knownUser, int retries, @Nullable EvaluatorResults results) {
-        var startTime = org.keycloak.common.util.Time.currentTimeMillis();
+        var startTime = Time.currentTimeMillis();
         try {
             var retriesCount = evaluator.allowRetries() ? retries : 1;
             for (int i = 0; i < retriesCount; i++) {
@@ -207,7 +209,7 @@ public abstract class AbstractRiskEngine implements RiskEngine {
                 }
             }
         } finally {
-            var duration = org.keycloak.common.util.Time.currentTimeMillis() - startTime;
+            var duration = Time.currentTimeMillis() - startTime;
             if (results != null) {
                 results.add(new EvaluatorResult(
                         evaluator.getClass().getSimpleName(),

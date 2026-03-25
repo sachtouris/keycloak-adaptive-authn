@@ -16,6 +16,7 @@
  */
 package io.github.mabartos.engine;
 
+import io.github.mabartos.spi.engine.RiskEngine;
 import io.github.mabartos.spi.level.ResultRisk;
 import io.github.mabartos.spi.evaluator.RiskEvaluator;
 import io.smallrye.mutiny.Multi;
@@ -115,7 +116,11 @@ public class DefaultRiskEngine extends AbstractRiskEngine {
         evaluators = phase.requiresKnownUser ? evaluators : evaluators.runSubscriptionOn(exec);
 
         evaluators.subscribe().with(e -> KeycloakModelUtils.runJobInTransaction(session.getKeycloakSessionFactory(), session.getContext(), s -> {
-            tracingProvider.trace(DefaultRiskEngine.class, "evaluateAll", span -> {
+            tracingProvider.trace(RiskEngine.class, "evaluateAll", span -> {
+                if (span.isRecording()) {
+                    span.setAttribute("keycloak.risk.engine.provider", DefaultRiskEngine.class.getSimpleName());
+                }
+
                 var evaluatedRisks = Multi.createFrom()
                         .items(e.stream())
                         .onItem().transformToUniAndConcatenate(risk -> processEvaluator(risk, realm, knownUser, phase.requiresKnownUser, exec, retries, timeout, results))

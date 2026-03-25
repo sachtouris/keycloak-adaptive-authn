@@ -16,8 +16,13 @@
  */
 package io.github.mabartos.engine;
 
-import io.github.mabartos.spi.level.ResultRisk;
+import io.github.mabartos.spi.engine.RiskEngine;
 import io.github.mabartos.spi.evaluator.RiskEvaluator;
+import io.github.mabartos.spi.level.ResultRisk;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanBuilder;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
 import org.keycloak.models.KeycloakSession;
@@ -26,11 +31,13 @@ import org.keycloak.models.UserModel;
 import org.keycloak.models.utils.KeycloakModelUtils;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.StructuredTaskScope;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static io.github.mabartos.engine.DefaultVTRiskEngineFactory.DEFAULT_EVALUATOR_RETRIES;
@@ -101,53 +108,82 @@ public class DefaultVTRiskEngine extends AbstractRiskEngine {
                 .forEach(f -> f.initData(realm, knownUser));
 
         var evaluators = getRiskEvaluators(phase, realm);
-        var evaluatedRisks = evaluateInParallel(evaluators, realm, knownUser, retries, timeout);
 
-        return KeycloakModelUtils.runJobInTransactionWithResult(session.getKeycloakSessionFactory(), session.getContext(), s ->
-                tracingProvider.trace(DefaultVTRiskEngine.class, "evaluateAll", span -> {
-                    this.risk = getRiskScoreAlgorithm(realm).evaluateRisk(evaluatedRisks, phase, realm, knownUser);
+        return KeycloakModelUtils.runJobInTransactionWithResult(session.getKeycloakSessionFactory(), session.getContext(), s -> {
+            Tracer tracer = tracingProvider.getTracer(RiskEngine.class.getSimpleName());
+            SpanBuilder spanBuilder = tracer.spanBuilder("%s.evaluateAll".formatted(RiskEngine.class.getSimpleName()));
+            Span span = tracingProvider.startSpan(spanBuilder);
+            try {
+                if (span.isRecording()) {
+                    span.setAttribute("keycloak.risk.engine.provider", DefaultVTRiskEngine.class.getSimpleName());
+                }
 
-                    if (risk.isValid()) {
-                        logger.debugf("The overall risk score is %f - (evaluation phase: %s)", risk.getScore(), phase);
+                var evaluatedRisks = evaluateInParallel(evaluators, realm, knownUser, retries, timeout, tracer, span);
 
-                        if (span.isRecording()) {
-                            span.setAttribute("keycloak.risk.engine.overall", risk.getScore());
-                            span.setAttribute("keycloak.risk.engine.phase", phase.name());
-                        }
+                this.risk = getRiskScoreAlgorithm(realm).evaluateRisk(evaluatedRisks, phase, realm, knownUser);
 
-                        storedRiskProvider.storeRisk(risk, phase);
+                if (risk.isValid()) {
+                    logger.debugf("The overall risk score is %f - (evaluation phase: %s)", risk.getScore(), phase);
+
+                    if (span.isRecording()) {
+                        span.setAttribute("keycloak.risk.engine.overall", risk.getScore());
+                        span.setAttribute("keycloak.risk.engine.phase", phase.name());
                     }
-                    return risk;
-                }), "DefaultVTRiskEngine.evaluateRiskAuthentication");
+
+                    storedRiskProvider.storeRisk(risk, phase);
+                }
+                return risk;
+            } catch (Exception e) {
+                tracingProvider.error(e);
+            } finally {
+                tracingProvider.endSpan();
+            }
+            return risk;
+        }, "DefaultVTRiskEngine.evaluateRiskAuthentication");
     }
 
-    protected Set<RiskEvaluator> evaluateInParallel(Set<RiskEvaluator> evaluators, @Nonnull RealmModel realm, @Nullable UserModel knownUser, int retries, @Nonnull Duration timeout) {
+    protected Set<RiskEvaluator> evaluateInParallel(Set<RiskEvaluator> evaluators, @Nonnull RealmModel realm, @Nullable UserModel knownUser, int retries, @Nonnull Duration timeout, @Nonnull Tracer tracer, @Nonnull Span parentSpan) {
         Map<RiskEvaluator, Boolean> completedEvaluators = new ConcurrentHashMap<>();
         var results = new EvaluatorResults();
 
         try (var scope = new StructuredTaskScope<RiskEvaluator>()) {
             for (var evaluator : evaluators) {
+                AtomicReference<Span> span = new AtomicReference<>();
                 scope.fork(() -> {
                     try {
-                        // Create transaction context for this virtual thread
+                        // Custom span builder to track parents as we cannot do span hierarchy due to different keycloak session and its context
+                        SpanBuilder spanBuilder = tracer.spanBuilder("%s.evaluate".formatted(evaluator.getClass().getSimpleName()));
+                        spanBuilder.setParent(Context.current().with(parentSpan));
+                        span.set(spanBuilder.startSpan());
                         return KeycloakModelUtils.runJobInTransactionWithResult(
                                 session.getKeycloakSessionFactory(),
                                 session.getContext(),
                                 s -> {
-                                    processEvaluator(evaluator, realm, knownUser, retries, results);
+                                    executeEvaluator(evaluator, realm, knownUser, retries, results);
                                     completedEvaluators.put(evaluator, true);
+
+                                    Span currentSpan = span.get();
+                                    if (currentSpan.isRecording()) {
+                                        currentSpan.setAttribute("keycloak.risk.engine.evaluator.score", evaluator.getRisk().getScore().name());
+                                        evaluator.getRisk().getReason().ifPresent(reason -> currentSpan.setAttribute("keycloak.risk.engine.evaluator.reason", reason));
+                                        currentSpan.setAttribute("keycloak.risk.engine.evaluator.trust", evaluator.getTrust(realm));
+                                    }
                                     return evaluator;
-                                }
-                                , "evaluateInParallel");
+                                }, "evaluateInParallel");
                     } catch (Exception e) {
                         logger.warnf(e, "Evaluator %s failed with exception", evaluator.getClass().getSimpleName());
                         return null;
+                    } finally {
+                        var currentSpan = span.get();
+                        if (currentSpan != null) {
+                            currentSpan.end();
+                        }
                     }
                 });
             }
 
             try {
-                scope.joinUntil(java.time.Instant.now().plus(timeout));
+                scope.joinUntil(Instant.now().plus(timeout));
                 logger.debugf("Risk evaluation completed - %d/%d evaluators finished in time", completedEvaluators.size(), evaluators.size());
             } catch (TimeoutException e) {
                 logger.warnf("Risk evaluation timeout exceeded: %d ms - %d/%d evaluators completed",
@@ -165,17 +201,5 @@ public class DefaultVTRiskEngine extends AbstractRiskEngine {
         return completedEvaluators.keySet().stream()
                 .filter(e -> e.getRisk().isValid())
                 .collect(Collectors.toSet());
-    }
-
-    protected void processEvaluator(@Nonnull RiskEvaluator evaluator, @Nonnull RealmModel realm, @Nullable UserModel knownUser, int retries, EvaluatorResults results) {
-        tracingProvider.trace(evaluator.getClass(), "evaluate", span -> {
-            executeEvaluator(evaluator, realm, knownUser, retries, results);
-
-            if (span.isRecording()) {
-                span.setAttribute("keycloak.risk.engine.evaluator.score", evaluator.getRisk().getScore().name());
-                evaluator.getRisk().getReason().ifPresent(reason -> span.setAttribute("keycloak.risk.engine.evaluator.reason", reason));
-                span.setAttribute("keycloak.risk.engine.evaluator.trust", evaluator.getTrust(realm));
-            }
-        });
     }
 }
