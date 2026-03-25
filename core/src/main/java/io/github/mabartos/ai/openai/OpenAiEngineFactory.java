@@ -25,7 +25,7 @@ import org.keycloak.quarkus.runtime.configuration.Configuration;
 import java.util.Optional;
 
 public class OpenAiEngineFactory implements AiEngineFactory {
-    public static final String PROVIDER_ID = "default";
+    public static final String PROVIDER_ID = "gpt";
 
     private static final String URL_PROPERTY = "ai.openai.api.url";
     private static final String KEY_PROPERTY = "ai.openai.api.key";

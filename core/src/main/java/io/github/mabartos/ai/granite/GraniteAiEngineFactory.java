@@ -54,6 +54,11 @@ public class GraniteAiEngineFactory implements AiEngineFactory {
     }
 
     @Override
+    public int order() {
+        return 1;
+    }
+
+    @Override
     public String getId() {
         return PROVIDER_ID;
     }

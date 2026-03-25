@@ -8,7 +8,25 @@ The AI engine provider is configured via the Keycloak SPI option:
 KC_SPI_AI_ENGINE_PROVIDER=claude
 ```
 
-Available providers: `claude`, `gemini`, `openai`, `granite` (default).
+Available providers: `granite` (default), `gpt`, `claude`, `gemini`.
+
+## OpenAI ChatGPT
+
+### Getting an API Key
+
+1. Visit [platform.openai.com](https://platform.openai.com/)
+2. Sign up or log in
+3. Navigate to **API Keys** and create a new secret key (starts with `sk-`)
+
+### Configuration
+
+| Environment Variable | Required | Default |
+|---|---|---|
+| `OPEN_AI_API_KEY` | Yes | - |
+| `OPEN_AI_API_URL` | No | `https://api.openai.com/v1/chat/completions` |
+| `OPEN_AI_API_MODEL` | No | `gpt-4o-mini` |
+| `OPEN_AI_API_ORGANIZATION` | No | - |
+| `OPEN_AI_API_PROJECT` | No | - |
 
 ## Claude (Anthropic)
 
