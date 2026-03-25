@@ -16,7 +16,7 @@
  */
 package io.github.mabartos.context.ip.proxy;
 
-import inet.ipaddr.IPAddress;
+import io.github.mabartos.context.ip.IPAddress;
 import io.github.mabartos.context.DeviceContext;
 import io.github.mabartos.context.ip.IpAddressUtils;
 import jakarta.annotation.Nonnull;

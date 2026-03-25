@@ -1,6 +1,6 @@
 package io.github.mabartos.context.ip.client;
 
-import inet.ipaddr.IPAddress;
+import io.github.mabartos.context.ip.IPAddress;
 import io.github.mabartos.context.DeviceContext;
 import io.github.mabartos.context.ip.IpAddressUtils;
 import jakarta.annotation.Nonnull;

@@ -16,9 +16,6 @@
  */
 package io.github.mabartos.context.ip;
 
-import inet.ipaddr.IPAddress;
-import inet.ipaddr.IPAddressString;
-import inet.ipaddr.IncompatibleAddressException;
 import io.github.mabartos.context.device.DeviceRepresentationContext;
 import jakarta.ws.rs.core.HttpHeaders;
 import org.keycloak.common.util.CollectionUtil;
@@ -51,29 +48,26 @@ public class IpAddressUtils {
             throw new IllegalArgumentException("Invalid IP Address range format");
         }
 
-        try {
-            var start = new IPAddressString(items[0]).getAddress();
-            var end = new IPAddressString(items[1]).getAddress();
-            var ipRange = start.spanWithRange(end);
-
-            var deviceIp = context.getData(realm)
-                    .map(DeviceRepresentation::getIpAddress)
-                    .filter(StringUtil::isNotBlank);
-
-            if (deviceIp.isEmpty()) throw new IllegalArgumentException("Cannot obtain IP Address");
-
-            return ipRange.contains(new IPAddressString(deviceIp.get()).getAddress());
-        } catch (IncompatibleAddressException e) {
-            throw new IllegalArgumentException("Cannot parse IP Address", e);
+        var start = IPAddress.parse(items[0].trim());
+        var end = IPAddress.parse(items[1].trim());
+        if (start == null || end == null) {
+            throw new IllegalArgumentException("Cannot parse IP Address range");
         }
+
+        var deviceIp = context.getData(realm)
+                .map(DeviceRepresentation::getIpAddress)
+                .filter(StringUtil::isNotBlank);
+
+        if (deviceIp.isEmpty()) throw new IllegalArgumentException("Cannot obtain IP Address");
+
+        var ip = IPAddress.parse(deviceIp.get());
+        if (ip == null) throw new IllegalArgumentException("Cannot parse device IP Address");
+
+        return ip.isInRange(start, end);
     }
 
     public static Optional<IPAddress> getIpAddress(String ipAddress) {
-        try {
-            return Optional.ofNullable(new IPAddressString(ipAddress).getAddress());
-        } catch (IncompatibleAddressException e) {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(IPAddress.parse(ipAddress));
     }
 
     private static IPAddress parseForwardedHeader(String header, Pattern pattern) {

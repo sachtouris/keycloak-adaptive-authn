@@ -21,7 +21,6 @@
         <keycloak.distribution.path>${project.build.directory}/unpacked/keycloak-${keycloak.version}</keycloak.distribution.path>
         <keycloak.exec.distribution.path>${project.build.directory}/unpacked/${project.artifactId}-${project.version}</keycloak.exec.distribution.path>
 
-        <seancfoley.ipaddress.version>5.5.1</seancfoley.ipaddress.version>
     </properties>
 
     <dependencies>
@@ -59,12 +58,6 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-arc</artifactId>
         </dependency>
-        <dependency>
-            <groupId>com.github.seancfoley</groupId>
-            <artifactId>ipaddress</artifactId>
-            <version>${seancfoley.ipaddress.version}</version>
-        </dependency>
-
         <!-- TESTING -->
         <dependency>
             <groupId>org.keycloak.testframework</groupId>
@@ -112,7 +105,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+            <!-- <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
                 <version>${maven.plugins.shade.version}</version>
@@ -129,13 +122,12 @@
                             <artifactSet>
                                 <includes>
                                     <include>io.github.mabartos:keycloak.adaptive.*</include>
-                                    <include>com.github.seancfoley:ipaddress</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
                     </execution>
                 </executions>
-            </plugin>
+            </plugin> -->
             <!-- <plugin>
                  <groupId>org.apache.maven.plugins</groupId>
                  <artifactId>maven-gpg-plugin</artifactId>

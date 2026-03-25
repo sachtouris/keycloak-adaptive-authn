@@ -16,7 +16,7 @@
  */
 package io.github.mabartos;
 
-import inet.ipaddr.IPAddress;
+import io.github.mabartos.context.ip.IPAddress;
 import io.github.mabartos.context.UserContexts;
 import io.github.mabartos.context.ip.client.DeviceIpAddressContext;
 import io.github.mabartos.context.ip.client.HeaderIpAddressContext;

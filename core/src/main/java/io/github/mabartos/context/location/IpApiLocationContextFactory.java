@@ -16,7 +16,7 @@
  */
 package io.github.mabartos.context.location;
 
-import inet.ipaddr.IPAddress;
+import io.github.mabartos.context.ip.IPAddress;
 import io.github.mabartos.spi.context.UserContextFactory;
 import org.keycloak.models.KeycloakSession;
 

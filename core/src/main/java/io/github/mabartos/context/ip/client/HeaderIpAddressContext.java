@@ -16,7 +16,7 @@
  */
 package io.github.mabartos.context.ip.client;
 
-import inet.ipaddr.IPAddress;
+import io.github.mabartos.context.ip.IPAddress;
 import io.github.mabartos.context.DeviceContext;
 import jakarta.annotation.Nonnull;
 import org.keycloak.models.KeycloakContext;
