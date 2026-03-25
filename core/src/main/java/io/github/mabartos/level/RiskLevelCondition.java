@@ -65,7 +65,7 @@ public class RiskLevelCondition implements ConditionalAuthenticator {
                 throw new IllegalStateException("RiskEngine not found");
             }
 
-            RiskScoreAlgorithm algorithm = riskEngine.getRiskScoreAlgorithm();
+            RiskScoreAlgorithm algorithm = riskEngine.getRiskScoreAlgorithm(context.getRealm());
             if (algorithm == null) {
                 logger.errorf("RiskScoreAlgorithm not available");
                 throw new IllegalStateException("RiskScoreAlgorithm not found");

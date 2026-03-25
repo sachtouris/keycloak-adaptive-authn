@@ -56,7 +56,7 @@ public class DefaultVTRiskEngine extends AbstractRiskEngine {
                 tracingProvider.trace(DefaultVTRiskEngine.class, "evaluateContinuous", span -> {
                     var results = new EvaluatorResults();
                     evaluators.forEach(evaluator -> executeEvaluator(evaluator, realm, knownUser, 1, results));
-                    var risk = riskScoreAlgorithm.evaluateRisk(evaluators, RiskEvaluator.EvaluationPhase.CONTINUOUS, realm, knownUser);
+                    var risk = getRiskScoreAlgorithm(realm).evaluateRisk(evaluators, RiskEvaluator.EvaluationPhase.CONTINUOUS, realm, knownUser);
 
                     if (risk.isValid()) {
                         if (span.isRecording()) {
@@ -105,7 +105,7 @@ public class DefaultVTRiskEngine extends AbstractRiskEngine {
 
         return KeycloakModelUtils.runJobInTransactionWithResult(session.getKeycloakSessionFactory(), session.getContext(), s ->
                 tracingProvider.trace(DefaultVTRiskEngine.class, "evaluateAll", span -> {
-                    this.risk = riskScoreAlgorithm.evaluateRisk(evaluatedRisks, phase, realm, knownUser);
+                    this.risk = getRiskScoreAlgorithm(realm).evaluateRisk(evaluatedRisks, phase, realm, knownUser);
 
                     if (risk.isValid()) {
                         logger.debugf("The overall risk score is %f - (evaluation phase: %s)", risk.getScore(), phase);

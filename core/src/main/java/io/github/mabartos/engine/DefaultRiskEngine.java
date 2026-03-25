@@ -56,7 +56,7 @@ public class DefaultRiskEngine extends AbstractRiskEngine {
                 tracingProvider.trace(DefaultRiskEngine.class, "evaluateContinuous", span -> {
                     var results = new EvaluatorResults();
                     evaluators.forEach(evaluator -> executeEvaluator(evaluator, realm, knownUser, 1, results));
-                    var risk = riskScoreAlgorithm.evaluateRisk(evaluators, RiskEvaluator.EvaluationPhase.CONTINUOUS, realm, knownUser);
+                    var risk = getRiskScoreAlgorithm(realm).evaluateRisk(evaluators, RiskEvaluator.EvaluationPhase.CONTINUOUS, realm, knownUser);
 
                     if (risk.isValid()) {
                         if (span.isRecording()) {
@@ -124,7 +124,7 @@ public class DefaultRiskEngine extends AbstractRiskEngine {
                         .asSet();
 
                 evaluatedRisks.subscribe().with(risks -> {
-                    this.risk = riskScoreAlgorithm.evaluateRisk(risks, phase, realm, knownUser);
+                    this.risk = getRiskScoreAlgorithm(realm).evaluateRisk(risks, phase, realm, knownUser);
 
                     if (risk.isValid()) {
                         logger.debugf("The overall risk score is %f - (evaluation phase: %s)", risk.getScore(), phase);

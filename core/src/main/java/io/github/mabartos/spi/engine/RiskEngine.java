@@ -71,11 +71,12 @@ public interface RiskEngine extends Provider {
                       @Nullable UserModel knownUser);
 
     /**
-     * Get the risk score algorithm currently being used by this engine
+     * Get the risk score algorithm for the given realm
      *
+     * @param realm the realm to resolve the algorithm for
      * @return the risk score algorithm
      */
-    RiskScoreAlgorithm getRiskScoreAlgorithm();
+    RiskScoreAlgorithm getRiskScoreAlgorithm(@Nonnull RealmModel realm);
 
     /**
      * Check if risk-based authentication is enabled for the current realm

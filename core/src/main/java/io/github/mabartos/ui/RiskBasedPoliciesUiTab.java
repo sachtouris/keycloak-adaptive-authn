@@ -20,6 +20,8 @@ import io.github.mabartos.level.Trust;
 import org.jboss.logging.Logger;
 import org.keycloak.Config;
 import io.github.mabartos.evaluator.EvaluatorUtils;
+import io.github.mabartos.spi.engine.RiskScoreAlgorithm;
+import io.github.mabartos.spi.engine.RiskScoreAlgorithmFactory;
 import io.github.mabartos.spi.evaluator.RiskEvaluator;
 import io.github.mabartos.spi.evaluator.RiskEvaluatorFactory;
 import org.keycloak.component.ComponentModel;
@@ -55,8 +57,10 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
     private static final Logger logger = Logger.getLogger(RiskBasedPoliciesUiTab.class);
 
     private List<RiskEvaluatorFactory> riskEvaluatorFactories = Collections.emptyList();
+    private List<RiskScoreAlgorithmFactory> algorithmFactories = Collections.emptyList();
 
     public static final String RISK_BASED_AUTHN_ENABLED_CONFIG = "riskBasedAuthnEnabled";
+    public static final String RISK_SCORE_ALGORITHM_CONFIG = "riskScoreAlgorithm";
 
     @Override
     public String getId() {
@@ -87,6 +91,7 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
         doIfPresent(model.get(RISK_BASED_AUTHN_ENABLED_CONFIG), value -> realm.setAttribute(RISK_BASED_AUTHN_ENABLED_CONFIG, value));
         doIfPresent(model.get(EVALUATOR_TIMEOUT_CONFIG), value -> realm.setAttribute(EVALUATOR_TIMEOUT_CONFIG, value));
         doIfPresent(model.get(EVALUATOR_RETRIES_CONFIG), value -> realm.setAttribute(EVALUATOR_RETRIES_CONFIG, value));
+        doIfPresent(model.get(RISK_SCORE_ALGORITHM_CONFIG), value -> realm.setAttribute(RISK_SCORE_ALGORITHM_CONFIG, value));
 
         riskEvaluatorFactories.forEach(evalFactory -> {
             // Enabled
@@ -117,6 +122,7 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
         doIfPresent(newModel.get(RISK_BASED_AUTHN_ENABLED_CONFIG), value -> realm.setAttribute(RISK_BASED_AUTHN_ENABLED_CONFIG, value));
         doIfPresent(newModel.get(EVALUATOR_TIMEOUT_CONFIG), value -> realm.setAttribute(EVALUATOR_TIMEOUT_CONFIG, value));
         doIfPresent(newModel.get(EVALUATOR_RETRIES_CONFIG), value -> realm.setAttribute(EVALUATOR_RETRIES_CONFIG, value));
+        doIfPresent(newModel.get(RISK_SCORE_ALGORITHM_CONFIG), value -> realm.setAttribute(RISK_SCORE_ALGORITHM_CONFIG, value));
 
         riskEvaluatorFactories.forEach(f -> {
             {
@@ -199,6 +205,13 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
                 .type(ProviderConfigProperty.STRING_TYPE)
                 .defaultValue(DEFAULT_EVALUATOR_RETRIES)
                 .add()
+                .property()
+                .name(RISK_SCORE_ALGORITHM_CONFIG)
+                .label("Risk score algorithm")
+                .helpText("Algorithm used to compute the overall risk score from individual evaluator results")
+                .type(ProviderConfigProperty.LIST_TYPE)
+                .options(algorithmFactories.stream().map(RiskScoreAlgorithmFactory::getId).toList())
+                .add()
                 .build();
 
         // Add Risk Evaluator Properties
@@ -216,6 +229,7 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
     @Override
     public void postInit(KeycloakSessionFactory factory) {
         this.riskEvaluatorFactories = factory.getProviderFactoriesStream(RiskEvaluator.class).map(f -> (RiskEvaluatorFactory) f).toList();
+        this.algorithmFactories = factory.getProviderFactoriesStream(RiskScoreAlgorithm.class).map(f -> (RiskScoreAlgorithmFactory) f).toList();
     }
 
     @Override

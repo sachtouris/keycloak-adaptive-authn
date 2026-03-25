@@ -27,6 +27,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static io.github.mabartos.ui.RiskBasedPoliciesUiTab.RISK_BASED_AUTHN_ENABLED_CONFIG;
+import static io.github.mabartos.ui.RiskBasedPoliciesUiTab.RISK_SCORE_ALGORITHM_CONFIG;
 
 public abstract class AbstractRiskEngine implements RiskEngine {
     protected static final Logger logger = Logger.getLogger(AbstractRiskEngine.class);
@@ -35,7 +36,7 @@ public abstract class AbstractRiskEngine implements RiskEngine {
 
     protected final KeycloakSession session;
     protected final TracingProvider tracingProvider;
-    protected final RiskScoreAlgorithm riskScoreAlgorithm;
+    protected final RiskScoreAlgorithm defaultRiskScoreAlgorithm;
     protected final Map<RiskEvaluator.EvaluationPhase, Set<RiskEvaluator>> riskEvaluators;
     protected final Set<UserContext> userContexts;
     protected final StoredRiskProvider storedRiskProvider;
@@ -45,7 +46,7 @@ public abstract class AbstractRiskEngine implements RiskEngine {
     public AbstractRiskEngine(KeycloakSession session) {
         this.session = session;
         this.tracingProvider = TracingProviderUtil.getTracingProvider(session);
-        this.riskScoreAlgorithm = session.getProvider(RiskScoreAlgorithm.class);
+        this.defaultRiskScoreAlgorithm = session.getProvider(RiskScoreAlgorithm.class);
         this.userContexts = session.getAllProviders(UserContext.class);
         this.storedRiskProvider = session.getProvider(StoredRiskProvider.class);
         this.riskEvaluators = initializeRiskEvaluators(session);
@@ -88,8 +89,15 @@ public abstract class AbstractRiskEngine implements RiskEngine {
     }
 
     @Override
-    public RiskScoreAlgorithm getRiskScoreAlgorithm() {
-        return riskScoreAlgorithm;
+    public RiskScoreAlgorithm getRiskScoreAlgorithm(@Nonnull RealmModel realm) {
+        var realmAlgorithm = realm.getAttribute(RISK_SCORE_ALGORITHM_CONFIG);
+        if (realmAlgorithm != null) {
+            var provider = session.getProvider(RiskScoreAlgorithm.class, realmAlgorithm);
+            if (provider != null) {
+                return provider;
+            }
+        }
+        return defaultRiskScoreAlgorithm;
     }
 
     @Override
