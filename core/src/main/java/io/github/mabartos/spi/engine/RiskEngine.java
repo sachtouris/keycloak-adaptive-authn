@@ -83,7 +83,7 @@ public interface RiskEngine extends Provider {
      *
      * @return true if risk-based authentication is enabled, false otherwise
      */
-    boolean isRiskBasedAuthnEnabled();
+    boolean isRiskBasedAuthnEnabled(@Nonnull RealmModel realm);
 
     @Override
     default void close() {

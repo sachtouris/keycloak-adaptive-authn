@@ -10,6 +10,7 @@ import org.keycloak.events.Event;
 import org.keycloak.events.EventListenerProvider;
 import org.keycloak.events.admin.AdminEvent;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.models.RealmModel;
 import org.keycloak.timer.ScheduledTask;
 import org.keycloak.timer.TimerProvider;
 import org.keycloak.utils.StringUtil;
@@ -36,54 +37,55 @@ public class LoginEventsEventListener implements EventListenerProvider {
 
     @Override
     public void onEvent(Event event) {
+        var realmId = event.getRealmId();
+        if (StringUtil.isBlank(realmId)) return;
+
+        var realm = session.realms().getRealm(realmId);
+        if (realm == null) {
+            log.warnf("Realm with ID '%s' does not exist.", realmId);
+            return;
+        }
+
         var riskEngine = session.getProvider(RiskEngine.class);
-        if (riskEngine != null && !riskEngine.isRiskBasedAuthnEnabled()) {
+        if (riskEngine != null && !riskEngine.isRiskBasedAuthnEnabled(realm)) {
             log.debug("Risk-based authentication is disabled for this realm.");
             return;
         }
 
         switch (event.getType()) {
-            case LOGIN -> handleLogin(event);
-            case LOGOUT -> handleLogout(event);
+            case LOGIN -> handleLogin(event, realm);
+            case LOGOUT -> handleLogout(event, realm);
         }
     }
 
-    protected void handleLogin(Event event) {
+    protected void handleLogin(Event event, RealmModel realm) {
         riskProvider.printStoredRisk().ifPresent(risk -> {
             // does not persist AFAIK
             event.getDetails().put(RISK_SCORE_DETAIL, risk);
             log.tracef("Added risk score ('%s') to the login session", risk);
         });
 
-        var realmId = event.getRealmId();
         var userId = event.getUserId();
+        if (StringUtil.isBlank(userId)) return;
 
-        if (StringUtil.isNotBlank(realmId) && StringUtil.isNotBlank(userId)) {
-            var realm = session.realms().getRealm(realmId);
-            if (realm == null) {
-                log.warnf("Realm with realm ID '%s' does not exist, so no timer cannot be created.", realmId);
-                return;
-            }
+        var user = session.users().getUserById(realm, userId);
+        if (user == null) {
+            log.warnf("User with user ID '%s' does not exist, so no timer cannot be created.", userId);
+            return;
+        }
 
-            var user = session.users().getUserById(realm, userId);
-            if (user == null) {
-                log.warnf("User with user ID '%s' does not exist, so no timer cannot be created.", userId);
-                return;
-            }
+        session.getAllProviders(UserContext.class)
+                .stream()
+                .filter(context -> context instanceof OnSuccessfulLoginCallback)
+                .forEach(context -> ((OnSuccessfulLoginCallback) context).onSuccessfulLogin(realm, user));
 
-            session.getAllProviders(UserContext.class)
-                    .stream()
-                    .filter(context -> context instanceof OnSuccessfulLoginCallback)
-                    .forEach(context -> ((OnSuccessfulLoginCallback) context).onSuccessfulLogin(realm, user));
-
-            var timerScheduled = user.getFirstAttribute(USER_ATTRIBUTE_CONTINUOUS_EVALUATIONS_TIMER_SET);
-            if (!Boolean.parseBoolean(timerScheduled)) {
-                timerProvider.scheduleTask(new ScheduledContinuousRiskEvaluation(realmId, userId),
-                        Duration.ofMinutes(DEFAULT_CONTINUOUS_RISK_EVALUATION_PERIOD_MINUTES).toMillis(),
-                        getUserTimerName(userId));
-                user.setAttribute(USER_ATTRIBUTE_CONTINUOUS_EVALUATIONS_TIMER_SET, List.of("true"));
-                log.debugf("Scheduled task for continuous risk evaluation was set. (User ID: '%s', period in minutes: '%d'", userId, DEFAULT_CONTINUOUS_RISK_EVALUATION_PERIOD_MINUTES);
-            }
+        var timerScheduled = user.getFirstAttribute(USER_ATTRIBUTE_CONTINUOUS_EVALUATIONS_TIMER_SET);
+        if (!Boolean.parseBoolean(timerScheduled)) {
+            timerProvider.scheduleTask(new ScheduledContinuousRiskEvaluation(realm.getId(), userId),
+                    Duration.ofMinutes(DEFAULT_CONTINUOUS_RISK_EVALUATION_PERIOD_MINUTES).toMillis(),
+                    getUserTimerName(userId));
+            user.setAttribute(USER_ATTRIBUTE_CONTINUOUS_EVALUATIONS_TIMER_SET, List.of("true"));
+            log.debugf("Scheduled task for continuous risk evaluation was set. (User ID: '%s', period in minutes: '%d'", userId, DEFAULT_CONTINUOUS_RISK_EVALUATION_PERIOD_MINUTES);
         }
     }
 
@@ -106,16 +108,17 @@ public class LoginEventsEventListener implements EventListenerProvider {
         }
     }
 
-    protected void handleLogout(Event event) {
-        if (StringUtil.isNotBlank(event.getUserId())) {
-            var user = session.users().getUserById(session.getContext().getRealm(), event.getUserId());
-            if (user == null) {
-                log.warnf("User with user ID '%s' does not exist, so no timer cannot be created.", event.getUserId());
-                return;
-            }
-            timerProvider.cancelTask(getUserTimerName(event.getId()));
-            user.removeAttribute(USER_ATTRIBUTE_CONTINUOUS_EVALUATIONS_TIMER_SET);
+    protected void handleLogout(Event event, RealmModel realm) {
+        var userId = event.getUserId();
+        if (StringUtil.isBlank(userId)) return;
+
+        var user = session.users().getUserById(realm, userId);
+        if (user == null) {
+            log.warnf("User with user ID '%s' does not exist, so no timer cannot be cancelled.", userId);
+            return;
         }
+        timerProvider.cancelTask(getUserTimerName(userId));
+        user.removeAttribute(USER_ATTRIBUTE_CONTINUOUS_EVALUATIONS_TIMER_SET);
     }
 
     protected static String getUserTimerName(String userId) {

@@ -60,7 +60,7 @@ public abstract class AbstractRiskEngine implements RiskEngine {
 
     @Override
     public ResultRisk evaluateRisk(@Nonnull RiskEvaluator.EvaluationPhase phase, @Nonnull RealmModel realm, @Nullable UserModel knownUser) {
-        if (!isRiskBasedAuthnEnabled()) {
+        if (!isRiskBasedAuthnEnabled(realm)) {
             return ResultRisk.invalid("Risk-based authentication is disabled. Skipping risk evaluation.");
         }
 
@@ -101,8 +101,7 @@ public abstract class AbstractRiskEngine implements RiskEngine {
     }
 
     @Override
-    public boolean isRiskBasedAuthnEnabled() {
-        var realm = session.getContext().getRealm();
+    public boolean isRiskBasedAuthnEnabled(@Nonnull RealmModel realm) {
         return Optional.ofNullable(realm.getAttribute(RISK_BASED_AUTHN_ENABLED_CONFIG))
                 .map(Boolean::parseBoolean)
                 .orElse(true);

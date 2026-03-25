@@ -55,7 +55,7 @@ public class RiskLevelCondition implements ConditionalAuthenticator {
         if (authConfig != null) {
             // Check if risk-based authentication is enabled
             var riskEngine = context.getSession().getProvider(RiskEngine.class);
-            if (riskEngine != null && !riskEngine.isRiskBasedAuthnEnabled()) {
+            if (riskEngine != null && !riskEngine.isRiskBasedAuthnEnabled(context.getRealm())) {
                 logger.warn("Risk-based authentication is disabled. Skipping risk level condition check.");
                 return false;
             }
