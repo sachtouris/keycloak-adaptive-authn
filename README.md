@@ -24,6 +24,8 @@
     </td>
     <td>
       <b><a href="https://chatgpt.com/">OpenAI ChatGPT</a></b><br/>
+      Default model <code>gpt-4o-mini</code><br/>
+      See <a href="docs/ai-engine-integration.md">AI Integration Guide</a> for setup.
     </td>
   </tr>
   <tr>
@@ -33,7 +35,20 @@
       </a>
     </td>
     <td>
-      <b><a href="https://www.anthropic.com/claude">Anthropic Claude</a></b><br/><br/>
+      <b><a href="https://www.anthropic.com/claude">Anthropic Claude</a></b><br/>
+      Default model <code>claude-haiku-4-5-20251001</code><br/>
+      See <a href="docs/ai-engine-integration.md">AI Integration Guide</a> for setup.
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="https://ai.google.dev/">
+        <img src="docs/img/gemini-logo.png" width="80" alt="Google Gemini logo"/>
+      </a>
+    </td>
+    <td>
+      <b><a href="https://ai.google.dev/">Google Gemini</a></b> (free tier available)<br/>
+      Default model <code>gemini-2.5-flash-lite</code><br/>
       See <a href="docs/ai-engine-integration.md">AI Integration Guide</a> for setup.
     </td>
   </tr>
@@ -45,12 +60,11 @@
     </td>
     <td>
       <b><a href="https://www.ibm.com/granite">IBM Granite</a></b> (experimental)<br/>
-      IBM's open-source AI models for enterprise use.
+      Default model <code>granite-8b-code-instruct-128k</code><br/>
+      See <a href="docs/ai-engine-integration.md">AI Integration Guide</a> for setup.
     </td>
   </tr>
 </table>
-
-It should work for all OpenAI ChatGPT compatible engines, but not verified.
 
 **Privacy & GDPR Compliance:** All user data (IP addresses, device info) is automatically anonymized before being sent to AI services. See [Privacy and Anonymization Guide](docs/privacy-and-anonymization.md) for details.
 

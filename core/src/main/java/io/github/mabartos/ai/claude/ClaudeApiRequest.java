@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.github.mabartos.ai.DefaultAiDataRequest;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Request format for Claude API (Anthropic)
@@ -39,7 +41,7 @@ public record ClaudeApiRequest(
         public record Format(String type, Schema schema) {
             public record Schema(String type,
                                  Boolean additionalProperties,
-                                 java.util.Map<String, Property> properties,
+                                 Map<String, Property> properties,
                                  List<String> required) {
                 public record Property(String type, String description) {
                 }
@@ -54,9 +56,9 @@ public record ClaudeApiRequest(
         if (responseFormat != null && responseFormat.jsonSchema() != null) {
             // Convert DefaultAiDataRequest schema to Claude schema format
             var properties = responseFormat.jsonSchema().schema().properties();
-            java.util.Map<String, OutputConfig.Format.Schema.Property> claudeSchema = properties.entrySet().stream()
-                    .collect(java.util.stream.Collectors.toMap(
-                            java.util.Map.Entry::getKey,
+            Map<String, OutputConfig.Format.Schema.Property> claudeSchema = properties.entrySet().stream()
+                    .collect(Collectors.toMap(
+                            Map.Entry::getKey,
                             e -> new OutputConfig.Format.Schema.Property(e.getValue().type(), e.getValue().description())
                     ));
 
