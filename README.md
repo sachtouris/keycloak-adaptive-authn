@@ -1,4 +1,4 @@
-![Keycloak](docs/img/keycloak-adaptive-colored.png)
+![Keycloak](docs/img/adaptive-authentication-logo.png)
 
 # Keycloak Adaptive Authentication
 
