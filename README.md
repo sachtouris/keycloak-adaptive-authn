@@ -13,6 +13,8 @@
 
 <img src="docs/img/github-risk-engine.png" alt="Risk Engine" width="1050"></img>
 
+For more information and quickstart, refer to the [Start guide](docs/start.md).
+
 ### Supported AI Engines
 
 <table>
@@ -24,8 +26,7 @@
     </td>
     <td>
       <b><a href="https://chatgpt.com/">OpenAI ChatGPT</a></b><br/>
-      Default model <code>gpt-4o-mini</code><br/>
-      See <a href="docs/ai-engine-integration.md">AI Integration Guide</a> for setup.
+      Default model: <code>gpt-4o-mini</code><br/>
     </td>
   </tr>
   <tr>
@@ -36,8 +37,7 @@
     </td>
     <td>
       <b><a href="https://www.anthropic.com/claude">Anthropic Claude</a></b><br/>
-      Default model <code>claude-haiku-4-5-20251001</code><br/>
-      See <a href="docs/ai-engine-integration.md">AI Integration Guide</a> for setup.
+      Default model: <code>claude-haiku-4-5-20251001</code><br/>
     </td>
   </tr>
   <tr>
@@ -48,8 +48,7 @@
     </td>
     <td>
       <b><a href="https://ai.google.dev/">Google Gemini</a></b> (free tier available)<br/>
-      Default model <code>gemini-2.5-flash-lite</code><br/>
-      See <a href="docs/ai-engine-integration.md">AI Integration Guide</a> for setup.
+      Default model: <code>gemini-2.5-flash-lite</code><br/>
     </td>
   </tr>
   <tr>
@@ -60,15 +59,14 @@
     </td>
     <td>
       <b><a href="https://www.ibm.com/granite">IBM Granite</a></b> (experimental)<br/>
-      Default model <code>granite-8b-code-instruct-128k</code><br/>
-      See <a href="docs/ai-engine-integration.md">AI Integration Guide</a> for setup.
+      Default model: <code>granite-8b-code-instruct-128k</code><br/>
     </td>
   </tr>
 </table>
 
-**Privacy & GDPR Compliance:** All user data (IP addresses, device info) is automatically anonymized before being sent to AI services. See [Privacy and Anonymization Guide](docs/privacy-and-anonymization.md) for details.
+For more information and setup, see the <a href="docs/ai-engine-integration.md">AI Integration Guide</a>.
 
-For more information, refer to the [Start guide](docs/start.md).
+**Privacy & GDPR Compliance:** All user data (IP addresses, device info) is automatically anonymized before being sent to AI services. See [Privacy and Anonymization Guide](docs/privacy-and-anonymization.md) for details.
 
 ## Installation
 You can install this extension to your Keycloak deployment either using the generated JAR or deploy it as a Quarkus extension.
@@ -97,12 +95,6 @@ You can just add the extension to arbitrary version of Keycloak like this:
 
 For more details, see the [Add Keycloak Adaptive Authentication extension](https://github.com/mabartos/keycloak-quarkus-extensions/blob/main/examples/keycloak-adaptive-authn.md) guide.
 
-
-## Connected Authentication Policies
-
-**NOTE**: Authentication policies that were part of this Adaptive authentication initiative were moved to
-repository [mabartos/keycloak-authn-policies](https://github.com/mabartos/keycloak-authn-policies).
-
 ## Resources with more info
 
 1. **Unlocking Adaptive Authentication (most recent)**
@@ -121,3 +113,8 @@ repository [mabartos/keycloak-authn-policies](https://github.com/mabartos/keyclo
     - Master's thesis completed 2024
     - (Information might differ)
     - [Document](https://github.com/mabartos/adaptive-authn-docs/blob/main/Adaptive_Authentication_Final.pdf)
+
+## Connected Authentication Policies
+
+**NOTE**: Authentication policies that were part of this Adaptive authentication initiative were moved to
+repository [mabartos/keycloak-authn-policies](https://github.com/mabartos/keycloak-authn-policies).
