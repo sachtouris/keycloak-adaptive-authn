@@ -151,12 +151,12 @@ public abstract class AbstractRiskEngine implements RiskEngine {
     /**
      * Helper class to track individual evaluator execution results
      */
-    protected record EvaluatorResult(String evaluatorName, Risk risk, double weight, long durationMs) {
+    protected record EvaluatorResult(String evaluatorName, Risk risk, double trust, long durationMs) {
 
         public String format() {
             var score = risk.getScore() != null ? risk.getScore().name() : "N/A";
-            String base = String.format("Evaluator: %s - Risk score: '%s' (weight '%.6f') - %d ms",
-                    evaluatorName, score, weight, durationMs);
+            String base = String.format("Evaluator: %s - Risk score: '%s' (trust '%.2f') - %d ms",
+                    evaluatorName, score, trust, durationMs);
 
             return risk.getReason()
                     .filter(r -> !r.isEmpty())
