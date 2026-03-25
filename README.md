@@ -17,25 +17,35 @@
 
 <table>
   <tr>
-    <th align="center">
-      <img width="441" height="1">
-      <a href="https://chatgpt.com/">OpenAI ChatGPT</a><p></p>
-    </th>
-    <th align="center">
-      <img width="441" height="1">
-      <a href="https://www.ibm.com/granite">IBM Granite</a> (experimental)<p></p>
-    </th>
+    <td align="center" width="200">
+      <a href="https://chatgpt.com/">
+        <img src="docs/img/chat-gpt-logo.png" width="80" alt="OpenAI ChatGPT logo"/>
+      </a>
+    </td>
+    <td>
+      <b><a href="https://chatgpt.com/">OpenAI ChatGPT</a></b><br/>
+    </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="https://chatgpt.com/">
-        <img src="docs/img/chat-gpt-logo.png" width="250" alt="OpenAI ChatGPT logo"/>
+      <a href="https://www.anthropic.com/claude">
+        <img src="docs/img/claude-logo.png" width="100" alt="Anthropic Claude logo"/>
       </a>
     </td>
+    <td>
+      <b><a href="https://www.anthropic.com/claude">Anthropic Claude</a></b><br/><br/>
+      See <a href="docs/ai-engine-integration.md">AI Integration Guide</a> for setup.
+    </td>
+  </tr>
+  <tr>
     <td align="center">
       <a href="https://www.ibm.com/granite">
-        <img src="docs/img/ibm-granite.png" width="100" alt="IBM Granite logo"/>
+        <img src="docs/img/ibm-granite.png" width="90" alt="IBM Granite logo"/>
       </a>
+    </td>
+    <td>
+      <b><a href="https://www.ibm.com/granite">IBM Granite</a></b> (experimental)<br/>
+      IBM's open-source AI models for enterprise use.
     </td>
   </tr>
 </table>

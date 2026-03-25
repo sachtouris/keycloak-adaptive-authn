@@ -30,7 +30,7 @@ import java.util.Optional;
 public interface AiEngine extends Provider {
 
     Map<String, DefaultAiDataRequest.SchemaType> DEFAULT_RISK_SCHEMA = Map.of(
-            "risk", new DefaultAiDataRequest.SchemaType("number", "Risk score (Risk.Score enum) of the evaluation. Possible values: %s".formatted(String.join(", ", Arrays.stream(Risk.Score.values()).map(Enum::name).toList()))),
+            "risk", new DefaultAiDataRequest.SchemaType("string", "Risk score (Risk.Score enum) of the evaluation. Possible values: %s".formatted(String.join(", ", Arrays.stream(Risk.Score.values()).map(Enum::name).toList()))),
             "reason", new DefaultAiDataRequest.SchemaType("string", "Reason why the score was evaluated like this - as briefly as possible."));
 
 

@@ -28,6 +28,7 @@ import org.jboss.logging.Logger;
 import org.keycloak.util.JsonSerialization;
 
 import java.io.IOException;
+import java.net.SocketException;
 import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Optional;
@@ -58,8 +59,7 @@ public class AiEngineUtils {
 
             try (var response = client.execute(request)) {
                 if (response.getStatusLine().getStatusCode() != 200) {
-                    log.warn("Request was not successful for the AI engine");
-                    log.tracef("%s: %s", response.getStatusLine().toString(), JsonSerialization.writeValueAsPrettyString(EntityUtils.toString(response.getEntity())));
+                    log.warn("Request was not successful for the AI engine. Reason: %s: %s".formatted(response.getStatusLine().toString(), JsonSerialization.writeValueAsPrettyString(EntityUtils.toString(response.getEntity()))));
                     return Optional.empty();
                 }
                 var result = JsonSerialization.readValue(response.getEntity().getContent(), resultClass);
@@ -67,8 +67,7 @@ public class AiEngineUtils {
                 return Optional.of(result);
             }
         } catch (URISyntaxException | IOException | RuntimeException e) {
-            log.error("Cannot invoke request on the AI engine.");
-            log.trace(e);
+            log.errorf("Cannot invoke request on the AI engine. Reason: %s", e.getMessage());
         }
         return Optional.empty();
     }

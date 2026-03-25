@@ -1,2 +1,3 @@
 io.github.mabartos.ai.openai.OpenAiEngineFactory
 io.github.mabartos.ai.granite.GraniteAiEngineFactory
+io.github.mabartos.ai.claude.ClaudeAiEngineFactory
