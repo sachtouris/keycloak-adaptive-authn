@@ -10,3 +10,5 @@
  io.github.mabartos.evaluator.behavior.UserActionsRiskEvaluatorFactory
  io.github.mabartos.evaluator.behavior.AiAccountTakeoverEvaluatorFactory
  io.github.mabartos.evaluator.login.FailedLoginPatternRiskEvaluatorFactory
+ io.github.mabartos.evaluator.client.ClientSensitivityRiskEvaluatorFactory
+ io.github.mabartos.evaluator.client.ClientRoleRiskEvaluatorFactory

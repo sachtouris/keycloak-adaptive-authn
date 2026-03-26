@@ -17,7 +17,6 @@
 package io.github.mabartos.evaluator.role;
 
 import io.github.mabartos.context.UserContexts;
-import io.github.mabartos.context.user.KcUserRoleContextFactory;
 import io.github.mabartos.context.user.UserRoleContext;
 import io.github.mabartos.spi.level.Risk;
 import io.github.mabartos.spi.evaluator.AbstractRiskEvaluator;
@@ -32,13 +31,26 @@ import org.keycloak.models.UserModel;
 import java.util.Collection;
 import java.util.Set;
 
-import static io.github.mabartos.spi.level.Risk.Score.MEDIUM;
-import static io.github.mabartos.spi.level.Risk.Score.NONE;
-
 /**
- * Risk evaluator for user role properties
+ * Risk evaluator for user realm role properties.
+ * <p>
+ * Uses Keycloak's role naming convention to classify risk by prefix.
+ * <p>
+ * Users with no sensitive realm roles receive a trust signal ({@link Risk.Score#NEGATIVE_LOW}).
  */
 public class DefaultUserRoleEvaluator extends AbstractRiskEvaluator {
+    private static final String MANAGE_PREFIX = "manage-";
+    private static final String CREATE_PREFIX = "create-";
+    private static final String VIEW_PREFIX = "view-";
+    private static final String QUERY_PREFIX = "query-";
+
+    private static final Set<String> SENSITIVE_ROLES = Set.of(
+            AdminRoles.ADMIN,
+            AdminRoles.REALM_ADMIN,
+            AdminRoles.CREATE_REALM,
+            AdminRoles.IMPERSONATION
+    );
+
     private final UserRoleContext context;
 
     public DefaultUserRoleEvaluator(KeycloakSession session) {
@@ -56,12 +68,27 @@ public class DefaultUserRoleEvaluator extends AbstractRiskEvaluator {
             return Risk.invalid("User is null");
         }
 
-        boolean isAdmin = context.getData(realm, knownUser)
+        Risk highest = Risk.of(Risk.Score.NEGATIVE_LOW, "User has no sensitive realm roles");
+
+        var roles = context.getData(realm, knownUser)
                 .stream()
                 .flatMap(Collection::stream)
-                .map(RoleModel::getName)
-                .anyMatch(roleName -> roleName.equals(AdminRoles.ADMIN) || roleName.equals(AdminRoles.REALM_ADMIN));
+                .toList();
 
-        return isAdmin ? Risk.of(MEDIUM) : Risk.of(NONE);
+        for (RoleModel role : roles) {
+            Risk.Score score = scoreForRole(role.getName());
+            highest = highest.max(Risk.of(score, "Realm role '%s'".formatted(role.getName())));
+        }
+
+        return highest;
+    }
+
+    private Risk.Score scoreForRole(String roleName) {
+        if (SENSITIVE_ROLES.contains(roleName)) return Risk.Score.MEDIUM;
+        if (roleName.startsWith(MANAGE_PREFIX)) return Risk.Score.MEDIUM;
+        if (roleName.startsWith(CREATE_PREFIX)) return Risk.Score.SMALL;
+        if (roleName.startsWith(VIEW_PREFIX)) return Risk.Score.NONE;
+        if (roleName.startsWith(QUERY_PREFIX)) return Risk.Score.NONE;
+        return Risk.Score.NONE;
     }
 }
