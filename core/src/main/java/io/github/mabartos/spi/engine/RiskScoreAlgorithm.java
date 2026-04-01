@@ -35,6 +35,8 @@ public interface RiskScoreAlgorithm extends Provider {
                             @Nonnull RealmModel realm,
                             @Nullable UserModel knownUser);
 
+    ResultRisk getOverallRisk();
+
     /**
      * Get simple risk levels (3 levels: LOW, MEDIUM, HIGH) calibrated for this algorithm.
      * Levels are validated on construction.

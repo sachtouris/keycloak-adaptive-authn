@@ -119,18 +119,27 @@ public class DefaultVTRiskEngine extends AbstractRiskEngine {
                 }
 
                 var evaluatedRisks = evaluateInParallel(evaluators, realm, knownUser, retries, timeout, tracer, span);
-
-                this.risk = getRiskScoreAlgorithm(realm).evaluateRisk(evaluatedRisks, phase, realm, knownUser);
+                var algorithm = getRiskScoreAlgorithm(realm);
+                risk = algorithm.evaluateRisk(evaluatedRisks, phase, realm, knownUser);
 
                 if (risk.isValid()) {
-                    logger.debugf("The overall risk score is %f - (evaluation phase: %s)", risk.getScore(), phase);
+                    logger.debugf("The phase risk score is %f - (evaluation phase: %s, algorithm: %s)", risk.getScore(), phase, algorithm.getClass().getSimpleName());
 
                     if (span.isRecording()) {
-                        span.setAttribute("keycloak.risk.engine.overall", risk.getScore());
+                        span.setAttribute("keycloak.risk.engine.phase.score", risk.getScore());
                         span.setAttribute("keycloak.risk.engine.phase", phase.name());
                     }
+                }
 
-                    storedRiskProvider.storeRisk(risk, phase);
+                if (phase == RiskEvaluator.EvaluationPhase.USER_KNOWN) {
+                    var overallRisk = algorithm.getOverallRisk();
+                    logger.debugf("The overall risk score is '%f' (algorithm: %s)", overallRisk.getScore(), algorithm.getClass().getSimpleName());
+                    if (overallRisk.isValid()) {
+                        storedRiskProvider.storeOverallRisk(overallRisk);
+                    }
+                    if (span.isRecording()) {
+                        span.setAttribute("keycloak.risk.engine.overall", overallRisk.getScore());
+                    }
                 }
                 return risk;
             } catch (Exception e) {

@@ -2,14 +2,16 @@ package io.github.mabartos.engine.algorithm;
 
 import io.github.mabartos.level.Trust;
 import io.github.mabartos.spi.engine.RiskScoreAlgorithm;
+import io.github.mabartos.spi.engine.StoredRiskProperties;
+import io.github.mabartos.spi.engine.StoredRiskProvider;
 import io.github.mabartos.spi.evaluator.RiskEvaluator;
 import io.github.mabartos.spi.level.AdvancedRiskLevels;
 import io.github.mabartos.spi.level.ResultRisk;
 import io.github.mabartos.spi.level.Risk;
-import io.github.mabartos.spi.level.RiskLevel;
 import io.github.mabartos.spi.level.SimpleRiskLevels;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
 
@@ -25,29 +27,10 @@ import static java.util.Optional.of;
  * Evidence scores are aggregated and transformed using logistic function to produce final risk probability.
  */
 public class LogOddsRiskAlgorithm implements RiskScoreAlgorithm {
-    // Simple 3-level thresholds calibrated for log-odds
-    private static final RiskLevel SIMPLE_LEVEL_LOW = new RiskLevel(SimpleRiskLevels.LOW, 0.0, 0.50);
-    private static final RiskLevel SIMPLE_LEVEL_MEDIUM = new RiskLevel(SimpleRiskLevels.MEDIUM, 0.50, 0.85);
-    private static final RiskLevel SIMPLE_LEVEL_HIGH = new RiskLevel(SimpleRiskLevels.HIGH, 0.85, 1.0);
-
-    // Advanced 5-level thresholds calibrated for log-odds
-    private static final RiskLevel ADV_LEVEL_LOW = new RiskLevel(AdvancedRiskLevels.LOW, 0.0, 0.35);
-    private static final RiskLevel ADV_LEVEL_MILD = new RiskLevel(AdvancedRiskLevels.MILD, 0.35, 0.55);
-    private static final RiskLevel ADV_LEVEL_MEDIUM = new RiskLevel(AdvancedRiskLevels.MEDIUM, 0.55, 0.75);
-    private static final RiskLevel ADV_LEVEL_MODERATE = new RiskLevel(AdvancedRiskLevels.MODERATE, 0.75, 0.90);
-    private static final RiskLevel ADV_LEVEL_HIGH = new RiskLevel(AdvancedRiskLevels.HIGH, 0.90, 1.0);
-
-    // Cached instances - validated once on creation
-    private static final SimpleRiskLevels SIMPLE_RISK_LEVELS = new SimpleRiskLevels(SIMPLE_LEVEL_LOW, SIMPLE_LEVEL_MEDIUM, SIMPLE_LEVEL_HIGH);
-    private static final AdvancedRiskLevels ADVANCED_RISK_LEVELS = new AdvancedRiskLevels(ADV_LEVEL_LOW, ADV_LEVEL_MILD, ADV_LEVEL_MEDIUM, ADV_LEVEL_MODERATE, ADV_LEVEL_HIGH);
-
-    /**
-     * Default bias for the algorithm.
-     * Negative bias makes the algorithm less aggressive, requiring more evidence to reach high risk levels.
-     */
-    private static final double DEFAULT_BIAS = -0.5;
-
     private final ValuesMapper valuesMapper;
+    private final SimpleRiskLevels simpleRiskLevels;
+    private final AdvancedRiskLevels advancedRiskLevels;
+    private final StoredRiskProvider storedRiskProvider;
 
     /**
      * Bias term representing the prior log-odds before any evidence is considered.
@@ -68,29 +51,24 @@ public class LogOddsRiskAlgorithm implements RiskScoreAlgorithm {
      */
     private final double biasScore;
 
-    public LogOddsRiskAlgorithm() {
-        this(DEFAULT_BIAS);
-    }
-
-    public LogOddsRiskAlgorithm(double biasScore) {
-        this(new ValuesMapper(), biasScore);
-    }
-
-    public LogOddsRiskAlgorithm(ValuesMapper valuesMapper, double biasScore) {
-        this.valuesMapper = valuesMapper;
+    public LogOddsRiskAlgorithm(KeycloakSession session, double biasScore, SimpleRiskLevels simpleRiskLevels, AdvancedRiskLevels advancedRiskLevels) {
         this.biasScore = biasScore;
+        this.simpleRiskLevels = simpleRiskLevels;
+        this.advancedRiskLevels = advancedRiskLevels;
+        this.valuesMapper = new ValuesMapper();
+        this.storedRiskProvider = session.getProvider(StoredRiskProvider.class);
     }
 
     @Override
     @Nonnull
     public SimpleRiskLevels getSimpleRiskLevels() {
-        return SIMPLE_RISK_LEVELS;
+        return simpleRiskLevels;
     }
 
     @Override
     @Nonnull
     public AdvancedRiskLevels getAdvancedRiskLevels() {
-        return ADVANCED_RISK_LEVELS;
+        return advancedRiskLevels;
     }
 
     @Override
@@ -103,21 +81,54 @@ public class LogOddsRiskAlgorithm implements RiskScoreAlgorithm {
                 .filter(f -> Trust.isValid(f.getTrust(realm)))
                 .collect(Collectors.toSet());
 
+        if (filteredEvaluators.isEmpty()) {
+            return ResultRisk.invalid("No valid evaluators found for this phase");
+        }
+
         // Calculate trust-weighted evidence sum
         var trustWeightedEvidenceSum = filteredEvaluators.stream()
                 .filter(eval -> valuesMapper.isValid(eval.getRisk()))
                 .mapToDouble(eval -> valuesMapper.getRiskValue(eval.getRisk()).get() * eval.getTrust(realm))
                 .sum();
 
-        if (filteredEvaluators.isEmpty()) {
-            return ResultRisk.invalid("No valid evaluators found for this phase");
-        }
-
         // Apply logistic transformation: P(fraud) = 1 / (1 + exp(-(evidence + bias)))
         double totalEvidence = trustWeightedEvidenceSum + biasScore;
         double riskProbability = logisticTransform(totalEvidence);
 
-        return ResultRisk.of(riskProbability);
+        var risk = ResultRisk.of(riskProbability);
+
+        storedRiskProvider.storeRisk(risk, phase);
+        storedRiskProvider.storeAdditionalData(getTotalEvidenceProperty(phase), Double.toString(totalEvidence));
+
+        return risk;
+    }
+
+    @Override
+    public ResultRisk getOverallRisk() {
+        var beforeAuthnEvidence = getStoredEvidence(RiskEvaluator.EvaluationPhase.BEFORE_AUTHN);
+        var userKnownEvidence = getStoredEvidence(RiskEvaluator.EvaluationPhase.USER_KNOWN);
+
+        if (beforeAuthnEvidence.isEmpty() && userKnownEvidence.isEmpty()) {
+            return ResultRisk.invalid("No evidence available");
+        }
+
+        var totalEvidence = beforeAuthnEvidence.orElse(0.0) + userKnownEvidence.orElse(0.0);
+        return ResultRisk.of(logisticTransform(totalEvidence));
+    }
+
+    private Optional<Double> getStoredEvidence(RiskEvaluator.EvaluationPhase phase) {
+        return storedRiskProvider.getAdditionalData(getTotalEvidenceProperty(phase))
+                .flatMap(value -> {
+                    try {
+                        return Optional.of(Double.parseDouble(value));
+                    } catch (NumberFormatException e) {
+                        return Optional.empty();
+                    }
+                });
+    }
+
+    private String getTotalEvidenceProperty(RiskEvaluator.EvaluationPhase phase) {
+        return StoredRiskProperties.getAlgorithmPrefix(phase) + "total-evidence";
     }
 
     /**

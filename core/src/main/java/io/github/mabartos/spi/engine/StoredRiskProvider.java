@@ -19,8 +19,11 @@ package io.github.mabartos.spi.engine;
 import io.github.mabartos.spi.level.ResultRisk;
 import io.github.mabartos.spi.level.Risk;
 import io.github.mabartos.spi.evaluator.RiskEvaluator;
+import jakarta.annotation.Nonnull;
+import jakarta.annotation.Nullable;
 import org.keycloak.provider.Provider;
 
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -42,14 +45,14 @@ public interface StoredRiskProvider extends Provider {
      * @param phase phase of the evaluation
      * @return overall risk score in range (0,1>
      */
-    ResultRisk getStoredRisk(RiskEvaluator.EvaluationPhase phase);
+    ResultRisk getStoredRisk(@Nonnull RiskEvaluator.EvaluationPhase phase);
 
     /**
      * Store the overall risk score
      *
      * @param risk overall risk score in range (0,1> and other attributes
      */
-    void storeOverallRisk(ResultRisk risk);
+    void storeOverallRisk(@Nonnull ResultRisk risk);
 
     /**
      * Store the overall risk score for the specific phase
@@ -57,19 +60,22 @@ public interface StoredRiskProvider extends Provider {
      * @param risk      risk score in range (0,1> and other attributes
      * @param phase     phase of the risk score evaluation
      */
-    void storeRisk(ResultRisk risk, RiskEvaluator.EvaluationPhase phase);
+    void storeRisk(@Nonnull ResultRisk risk, @Nonnull RiskEvaluator.EvaluationPhase phase);
 
     /**
-     * Get stored overall risk score in a printable version
+     * Store additional data associated with the risk evaluation.
+     * Can be used by algorithms to persist algorithm-specific metadata (e.g., evidence scores).
+     *
+     * @param key   the property key
+     * @param value the property value
      */
-    default Optional<String> printStoredRisk() {
-        return Optional.of(getStoredOverallRisk()).filter(ResultRisk::isValid).map(risk -> String.format("%.2f", risk.getScore()));
-    }
+    void storeAdditionalData(String key, String value);
 
     /**
-     * Get stored risk score in a printable version for specific risk phase
+     * Get additional data associated with the risk evaluation.
+     *
+     * @param key the property key
+     * @return the stored value, or empty if not present
      */
-    default Optional<String> printStoredRisk(RiskEvaluator.EvaluationPhase phase) {
-        return Optional.of(getStoredRisk(phase)).filter(ResultRisk::isValid).map(risk -> String.format("%.2f", risk.getScore()));
-    }
+    Optional<String> getAdditionalData(String key);
 }

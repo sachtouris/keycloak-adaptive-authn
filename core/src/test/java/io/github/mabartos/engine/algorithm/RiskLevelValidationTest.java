@@ -1,14 +1,16 @@
 package io.github.mabartos.engine.algorithm;
 
+import io.github.mabartos.spi.level.AdvancedRiskLevels;
 import io.github.mabartos.spi.level.RiskLevel;
 import io.github.mabartos.spi.level.RiskLevelValidator;
 import io.github.mabartos.spi.level.SimpleRiskLevels;
-import io.github.mabartos.spi.level.AdvancedRiskLevels;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Tests for risk level validation to ensure algorithms cover the entire 0-1 spectrum.
@@ -84,24 +86,6 @@ class RiskLevelValidationTest {
                 () -> RiskLevelValidator.validate(levels, "TestEndAtOne"));
 
         assertTrue(exception.getMessage().contains("must end at 1.0"));
-    }
-
-    @Test
-    void testLogOddsRiskAlgorithmValidation() {
-        // The actual LogOdds algorithm should pass validation
-        // Validation happens in constructors when SimpleRiskLevels/AdvancedRiskLevels are created
-        LogOddsRiskAlgorithm algorithm = new LogOddsRiskAlgorithm();
-        assertDoesNotThrow(() -> algorithm.getSimpleRiskLevels());
-        assertDoesNotThrow(() -> algorithm.getAdvancedRiskLevels());
-    }
-
-    @Test
-    void testWeightedAvgRiskAlgorithmValidation() {
-        // The actual WeightedAvg algorithm should pass validation
-        // Validation happens in constructors when SimpleRiskLevels/AdvancedRiskLevels are created
-        WeightedAvgRiskAlgorithm algorithm = new WeightedAvgRiskAlgorithm();
-        assertDoesNotThrow(() -> algorithm.getSimpleRiskLevels());
-        assertDoesNotThrow(() -> algorithm.getAdvancedRiskLevels());
     }
 
     @Test

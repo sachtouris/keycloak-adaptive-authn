@@ -3,7 +3,6 @@ package io.github.mabartos.engine;
 import io.github.mabartos.spi.context.UserContext;
 import io.github.mabartos.spi.engine.OnSuccessfulLoginCallback;
 import io.github.mabartos.spi.engine.RiskEngine;
-import io.github.mabartos.spi.engine.StoredRiskProvider;
 import io.github.mabartos.spi.evaluator.RiskEvaluator;
 import org.jboss.logging.Logger;
 import org.keycloak.events.Event;
@@ -18,7 +17,6 @@ import org.keycloak.utils.StringUtil;
 import java.time.Duration;
 import java.util.List;
 
-import static io.github.mabartos.engine.LoginEventsEventListenerFactory.RISK_SCORE_DETAIL;
 import static io.github.mabartos.spi.engine.RiskEngine.DEFAULT_CONTINUOUS_RISK_EVALUATION_PERIOD_MINUTES;
 
 public class LoginEventsEventListener implements EventListenerProvider {
@@ -26,12 +24,10 @@ public class LoginEventsEventListener implements EventListenerProvider {
 
     protected static final String USER_ATTRIBUTE_CONTINUOUS_EVALUATIONS_TIMER_SET = "has_continuous_evaluations_timer_set";
     private final KeycloakSession session;
-    private final StoredRiskProvider riskProvider;
     private final TimerProvider timerProvider;
 
     public LoginEventsEventListener(KeycloakSession session) {
         this.session = session;
-        this.riskProvider = session.getProvider(StoredRiskProvider.class);
         this.timerProvider = session.getProvider(TimerProvider.class);
     }
 
@@ -59,12 +55,6 @@ public class LoginEventsEventListener implements EventListenerProvider {
     }
 
     protected void handleLogin(Event event, RealmModel realm) {
-        riskProvider.printStoredRisk().ifPresent(risk -> {
-            // does not persist AFAIK
-            event.getDetails().put(RISK_SCORE_DETAIL, risk);
-            log.tracef("Added risk score ('%s') to the login session", risk);
-        });
-
         var userId = event.getUserId();
         if (StringUtil.isBlank(userId)) return;
 

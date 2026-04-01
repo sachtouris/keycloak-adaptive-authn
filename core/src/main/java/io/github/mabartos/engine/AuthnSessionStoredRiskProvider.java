@@ -16,12 +16,14 @@
  */
 package io.github.mabartos.engine;
 
-import io.github.mabartos.spi.level.ResultRisk;
+import io.github.mabartos.spi.engine.StoredRiskProperties;
 import io.github.mabartos.spi.engine.StoredRiskProvider;
 import io.github.mabartos.spi.evaluator.RiskEvaluator;
-import jakarta.annotation.Nullable;
+import io.github.mabartos.spi.level.ResultRisk;
+import jakarta.annotation.Nonnull;
 import org.jboss.logging.Logger;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.sessions.AuthenticationSessionModel;
 import org.keycloak.utils.StringUtil;
 
 import java.util.Optional;
@@ -31,11 +33,6 @@ import java.util.Optional;
  */
 public class AuthnSessionStoredRiskProvider implements StoredRiskProvider {
     private static final Logger logger = Logger.getLogger(AuthnSessionStoredRiskProvider.class);
-
-    private static final String OVERALL_PROP = "OVERALL";
-    protected static final String ADAPTIVE_AUTHN_RISK_SCORE_PREFIX = "ADAPTIVE_AUTHN_CURRENT_RISK_SCORE_";
-    protected static final String ADAPTIVE_AUTHN_RISK_REASON_PREFIX = "ADAPTIVE_AUTHN_CURRENT_RISK_REASON_";
-
     private final KeycloakSession session;
 
     public AuthnSessionStoredRiskProvider(KeycloakSession session) {
@@ -44,74 +41,61 @@ public class AuthnSessionStoredRiskProvider implements StoredRiskProvider {
 
     @Override
     public ResultRisk getStoredOverallRisk() {
-        return getStoredRisk(null);
+        return getStoredRisk(StoredRiskProperties.getOverallScoreProperty(), StoredRiskProperties.getOverallSummaryProperty());
     }
 
     @Override
-    public ResultRisk getStoredRisk(@Nullable RiskEvaluator.EvaluationPhase phase) {
-        try {
-            return Optional.ofNullable(session.getContext().getAuthenticationSession())
-                    .map(f -> {
-                        var score = f.getAuthNote(getScoreProperty(phase));
-                        if (StringUtil.isBlank(score) || score.equals("-1")) {
-                            return ResultRisk.invalid();
-                        }
-                        var reason = f.getAuthNote(getReasonProperty(phase));
+    public ResultRisk getStoredRisk(@Nonnull RiskEvaluator.EvaluationPhase phase) {
+        return getStoredRisk(StoredRiskProperties.getOverallScoreProperty(phase), StoredRiskProperties.getOverallSummaryProperty(phase));
+    }
+
+    private ResultRisk getStoredRisk(@Nonnull String scoreProperty, @Nonnull String reasonProperty) {
+        return getAdditionalData(scoreProperty)
+                .filter(score -> StringUtil.isNotBlank(score) && !score.equals(Double.toString(ResultRisk.invalid().getScore())))
+                .map(score -> {
+                    try {
+                        var reason = getAdditionalData(reasonProperty).orElse("");
                         return ResultRisk.of(Double.parseDouble(score), reason);
-                    })
-                    .filter(ResultRisk::isValid)
-                    .orElse(ResultRisk.invalid());
-        } catch (NumberFormatException e) {
-            return ResultRisk.invalid();
-        }
+                    } catch (NumberFormatException e) {
+                        return ResultRisk.invalid();
+                    }
+                }).filter(ResultRisk::isValid)
+                .orElse(ResultRisk.invalid("No stored risk"));
     }
 
     @Override
-    public void storeOverallRisk(ResultRisk risk) {
-        storeRisk(risk, null);
+    public void storeOverallRisk(@Nonnull ResultRisk risk) {
+        storeRisk(risk, StoredRiskProperties.getOverallScoreProperty(), StoredRiskProperties.getOverallSummaryProperty());
     }
 
     @Override
-    public void storeRisk(ResultRisk risk, @Nullable RiskEvaluator.EvaluationPhase phase) {
+    public void storeRisk(@Nonnull ResultRisk risk, @Nonnull RiskEvaluator.EvaluationPhase phase) {
+        storeRisk(risk, StoredRiskProperties.getOverallScoreProperty(phase), StoredRiskProperties.getOverallSummaryProperty(phase));
+    }
+
+    private void storeRisk(@Nonnull ResultRisk risk, @Nonnull String scoreProperty, @Nonnull String reasonProperty) {
         if (!risk.isValid()) {
             logger.warnf("Cannot store the invalid risk score '%f'", risk);
             return;
         }
 
-        Optional.ofNullable(session.getContext().getAuthenticationSession())
-                .ifPresentOrElse(f -> {
-                            f.setAuthNote(getScoreProperty(phase), Double.toString(risk.getScore()));
-                            f.setAuthNote(getReasonProperty(phase), risk.getSummary().orElse(""));
-                        },
-                        () -> {
-                            throw new IllegalStateException("Authentication session is null");
-                        });
-
-        // Store Overall risk
-        if (phase != null && !phase.equals(RiskEvaluator.EvaluationPhase.CONTINUOUS)) {
-            var oppositePhase = phase == RiskEvaluator.EvaluationPhase.BEFORE_AUTHN ?
-                    RiskEvaluator.EvaluationPhase.USER_KNOWN :
-                    RiskEvaluator.EvaluationPhase.BEFORE_AUTHN;
-            var oppositeRisk = getStoredRisk(oppositePhase);
-            var overallRisk = risk;
-
-            if (oppositeRisk.isValid()) {
-                overallRisk = risk.getScore() > oppositeRisk.getScore() ? risk : oppositeRisk;
-                logger.debugf("Stored overall risk: max(%f ('%s'), %f ('%s')) = %f", risk.getScore(), phase.name(), oppositeRisk.getScore(), oppositePhase.name(), overallRisk.getScore());
-            } else {
-                logger.tracef("Stored overall risk: %f ('%s')", risk.getScore(), phase.name());
-            }
-
-            storeOverallRisk(overallRisk);
-        }
+        storeAdditionalData(scoreProperty, Double.toString(risk.getScore()));
+        risk.getSummary().ifPresent(summary -> storeAdditionalData(reasonProperty, summary));
     }
 
-    static String getScoreProperty(@Nullable RiskEvaluator.EvaluationPhase phase) {
-        return ADAPTIVE_AUTHN_RISK_SCORE_PREFIX + Optional.ofNullable(phase).map(Enum::name).orElse(OVERALL_PROP);
+    @Override
+    public void storeAdditionalData(String key, String value) {
+        var authnSession = getAuthnSession().orElseThrow();
+        authnSession.setAuthNote(key, value);
     }
 
-    static String getReasonProperty(@Nullable RiskEvaluator.EvaluationPhase phase) {
-        return ADAPTIVE_AUTHN_RISK_REASON_PREFIX + Optional.ofNullable(phase).map(Enum::name).orElse(OVERALL_PROP);
+    @Override
+    public Optional<String> getAdditionalData(String key) {
+        return Optional.ofNullable(getAuthnSession().orElseThrow(() -> new IllegalStateException("Authentication session is null")).getAuthNote(key));
+    }
+
+    protected Optional<AuthenticationSessionModel> getAuthnSession() {
+        return Optional.ofNullable(session.getContext().getAuthenticationSession());
     }
 
     @Override
