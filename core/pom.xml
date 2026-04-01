@@ -18,7 +18,7 @@
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <keycloak.distribution.path>${project.build.directory}/unpacked/keycloak-${keycloak.version}</keycloak.distribution.path>
+        <keycloak.distribution.path>${project.build.directory}/unpacked/keycloak-${keycloak.dist.version}</keycloak.distribution.path>
         <keycloak.exec.distribution.path>${project.build.directory}/unpacked/${project.artifactId}-${project.version}</keycloak.exec.distribution.path>
 
     </properties>
@@ -285,6 +285,56 @@
                                 <goals>
                                     <goal>single</goal>
                                 </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <!-- Fetch released Keycloak distribution from Maven Central instead of GitHub -->
+        <!-- Usage: mvn install -Pbuild-distribution,dist-maven -Dkeycloak.dist.version=26.5.6 -->
+        <profile>
+            <id>dist-maven</id>
+            <build>
+                <plugins>
+                    <!-- Disable the GitHub download -->
+                    <plugin>
+                        <groupId>com.googlecode.maven-download-plugin</groupId>
+                        <artifactId>download-maven-plugin</artifactId>
+                        <version>${maven.plugins.download.version}</version>
+                        <executions>
+                            <execution>
+                                <id>download-keycloak-github</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+
+                    <!-- Fetch from Maven Central -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-dependency-plugin</artifactId>
+                        <version>${maven.plugins.dependency.version}</version>
+                        <executions>
+                            <execution>
+                                <id>download-keycloak-maven</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>copy</goal>
+                                </goals>
+                                <configuration>
+                                    <artifactItems>
+                                        <artifactItem>
+                                            <groupId>org.keycloak</groupId>
+                                            <artifactId>keycloak-quarkus-dist</artifactId>
+                                            <version>${keycloak.dist.version}</version>
+                                            <type>zip</type>
+                                            <outputDirectory>${project.build.directory}/downloads</outputDirectory>
+                                            <destFileName>keycloak-dist.zip</destFileName>
+                                        </artifactItem>
+                                    </artifactItems>
+                                </configuration>
                             </execution>
                         </executions>
                     </plugin>

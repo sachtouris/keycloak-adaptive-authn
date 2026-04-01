@@ -9,6 +9,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - keycloak-version: nightly
+            extra-args: ""
+          - keycloak-version: 26.5.6
+            extra-args: -Pdist-maven -Dkeycloak.version=26.5.6
+          - keycloak-version: 26.4.7
+            extra-args: -Pdist-maven -Dkeycloak.version=26.4.7
+
+    name: Keycloak ${{ matrix.keycloak-version }}
     steps:
     - uses: actions/checkout@v4
 
@@ -20,7 +32,7 @@ jobs:
         cache: maven
 
     - name: Build extension
-      run: ./mvnw clean install -DskipTests -Pbuild-distribution
+      run: ./mvnw clean install -DskipTests -Pbuild-distribution ${{ matrix.extra-args }}
 
     - name: Test execute 'build' command
       run: ./mvnw -f core exec:exec@build
