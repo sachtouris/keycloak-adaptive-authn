@@ -13,8 +13,10 @@ public class LogOddsRiskAlgorithmFactory implements RiskScoreAlgorithmFactory {
     /**
      * Default bias for the algorithm.
      * Negative bias makes the algorithm less aggressive, requiring more evidence to reach high risk levels.
+     * Since overall risk combines evidence additively from both BEFORE_AUTHN and USER_KNOWN phases,
+     * the bias must compensate for the accumulated evidence across phases.
      */
-    private static final double DEFAULT_BIAS = -0.5;
+    private static final double DEFAULT_BIAS = -2.0;
 
     // Simple 3-level thresholds calibrated for log-odds
     private static final RiskLevel SIMPLE_LEVEL_LOW = new RiskLevel(SimpleRiskLevels.LOW, 0.0, 0.50);
