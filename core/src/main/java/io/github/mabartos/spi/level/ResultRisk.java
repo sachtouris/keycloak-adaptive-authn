@@ -27,7 +27,7 @@ public class ResultRisk {
     }
 
     public boolean isValid() {
-        return !this.equals(INVALID) || score != INVALID.score;
+        return !this.equals(INVALID) && score != INVALID.score;
     }
 
     public static ResultRisk invalid() {
