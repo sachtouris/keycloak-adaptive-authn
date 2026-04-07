@@ -419,7 +419,10 @@
     "email" : "user@user",
     "emailVerified" : true,
     "attributes" : {
-      "has_continuous_evaluations_timer_set" : [ "true" ]
+      "timePattern.meanSin" : [ "-0.12990381056766576" ],
+      "has_continuous_evaluations_timer_set" : [ "true" ],
+      "adaptive_authn.known_locations" : [ "Czechia:Prague" ],
+      "timePattern.meanCos" : [ "-0.07500000000000007" ]
     },
     "enabled" : true,
     "createdTimestamp" : 1716930931775,
@@ -1252,7 +1255,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-full-name-mapper", "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "saml-role-list-mapper", "oidc-usermodel-property-mapper", "oidc-address-mapper" ]
+        "allowed-protocol-mapper-types" : [ "saml-role-list-mapper", "saml-user-property-mapper", "oidc-address-mapper", "oidc-full-name-mapper", "oidc-usermodel-property-mapper", "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "oidc-sha256-pairwise-sub-mapper" ]
       }
     }, {
       "id" : "177c422a-5da4-495f-97bb-365930521275",
@@ -1261,7 +1264,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "saml-user-property-mapper", "saml-role-list-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "saml-role-list-mapper", "oidc-usermodel-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "saml-user-attribute-mapper", "saml-user-property-mapper", "oidc-address-mapper" ]
       }
     }, {
       "id" : "f03f1114-52b9-4eda-8519-d379aab18f59",
@@ -1339,12 +1342,12 @@
         "riskEvaluatorEnabledConfig-LocationRiskEvaluatorFactory" : [ "true" ],
         "riskEvaluatorEnabledConfig-OperatingSystemRiskEvaluatorFactory" : [ "true" ],
         "realm" : [ "adaptive" ],
-        "riskLevelProvider" : [ "Risk levels - 3 levels (Low, Medium, High)" ],
         "riskEvaluatorTimeoutConfig" : [ "2500" ],
+        "riskLevelProvider" : [ "Risk levels - 3 levels (Low, Medium, High)" ],
         "riskEvaluatorEnabledConfig-AiLoginFailuresRiskEvaluatorFactory" : [ "true" ],
-        "riskEvaluatorEnabledConfig-AiDeviceRiskEvaluatorFactory" : [ "true" ],
         "riskEvaluatorEnabledConfig-LoginFailuresRiskEvaluatorFactory" : [ "true" ],
-        "riskBasedAuthnEnabled" : [ "true" ]
+        "riskBasedAuthnEnabled" : [ "true" ],
+        "riskEvaluatorEnabledConfig-AiDeviceRiskEvaluatorFactory" : [ "true" ]
       }
     } ]
   },
@@ -1389,6 +1392,28 @@
       "authenticator" : "auth-otp-form",
       "authenticatorFlow" : false,
       "requirement" : "REQUIRED",
+      "priority" : 20,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "d4aeab01-6e8a-42ce-aaab-10297708d30d",
+    "alias" : "Browser - Conditional Organization",
+    "description" : "Flow to determine if the organization identity-first login is to be used",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticator" : "conditional-user-configured",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 10,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "organization",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
       "priority" : 20,
       "autheticatorFlow" : false,
       "userSetupAllowed" : false
@@ -1615,11 +1640,39 @@
       "autheticatorFlow" : false,
       "userSetupAllowed" : false
     }, {
-      "authenticatorConfig" : "conditional-otp",
-      "authenticator" : "auth-conditional-otp-form",
+      "authenticator" : "conditional-user-configured",
       "authenticatorFlow" : false,
       "requirement" : "REQUIRED",
       "priority" : 2,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorConfig" : "credential-config",
+      "authenticator" : "conditional-credential",
+      "authenticatorFlow" : false,
+      "requirement" : "REQUIRED",
+      "priority" : 3,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "auth-otp-form",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 4,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "webauthn-authenticator",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 5,
+      "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticator" : "auth-recovery-authn-code-form",
+      "authenticatorFlow" : false,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 6,
       "autheticatorFlow" : false,
       "userSetupAllowed" : false
     } ]
@@ -1677,6 +1730,20 @@
       "requirement" : "REQUIRED",
       "priority" : 2,
       "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    } ]
+  }, {
+    "id" : "6ffcd9c4-05e5-4835-9263-1d5a7d6e8215",
+    "alias" : "Organization",
+    "providerId" : "basic-flow",
+    "topLevel" : false,
+    "builtIn" : true,
+    "authenticationExecutions" : [ {
+      "authenticatorFlow" : true,
+      "requirement" : "CONDITIONAL",
+      "priority" : 10,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Browser - Conditional Organization",
       "userSetupAllowed" : false
     } ]
   }, {
@@ -1773,6 +1840,13 @@
       "requirement" : "ALTERNATIVE",
       "priority" : 25,
       "autheticatorFlow" : false,
+      "userSetupAllowed" : false
+    }, {
+      "authenticatorFlow" : true,
+      "requirement" : "ALTERNATIVE",
+      "priority" : 26,
+      "autheticatorFlow" : true,
+      "flowAlias" : "Organization",
       "userSetupAllowed" : false
     }, {
       "authenticatorFlow" : true,
@@ -2256,17 +2330,16 @@
       "requiresUserConfig" : "false"
     }
   }, {
-    "id" : "6248a16d-79a8-436b-b7a7-d7748316d31b",
-    "alias" : "conditional-otp",
-    "config" : {
-      "forceOtpRole" : "realm-management.realm-admin",
-      "defaultOtpOutcome" : "skip"
-    }
-  }, {
     "id" : "4db8e7b6-d1b2-426c-944c-a43465ab3356",
     "alias" : "create unique user config",
     "config" : {
       "require.password.update.after.registration" : "false"
+    }
+  }, {
+    "id" : "b281b140-fd1b-4b69-a439-d170854fd9e5",
+    "alias" : "credential-config",
+    "config" : {
+      "credentials" : "webauthn-passwordless"
     }
   }, {
     "id" : "f70d39c7-1303-4d43-9aaf-979a84059ac3",
@@ -2421,11 +2494,12 @@
     "riskEvaluatorEnabledConfig-OperatingSystemRiskEvaluatorFactory" : "true",
     "riskLevelProvider" : "simple-risk-levels"
   },
-  "keycloakVersion" : "26.4.7",
+  "keycloakVersion" : "999.0.0-SNAPSHOT",
   "userManagedAccessAllowed" : false,
   "organizationsEnabled" : false,
   "verifiableCredentialsEnabled" : false,
   "adminPermissionsEnabled" : false,
+  "scimEnabled" : false,
   "clientProfiles" : {
     "profiles" : [ ]
   },
