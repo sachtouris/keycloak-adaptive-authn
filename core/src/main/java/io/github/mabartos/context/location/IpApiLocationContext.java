@@ -17,6 +17,7 @@
 package io.github.mabartos.context.location;
 
 import io.github.mabartos.context.UserContexts;
+import io.github.mabartos.context.ip.IPAddress;
 import io.github.mabartos.context.ip.client.IpAddressContext;
 import jakarta.annotation.Nonnull;
 import org.apache.http.client.methods.HttpGet;
@@ -37,14 +38,20 @@ import java.util.Optional;
  * Obtain location data based on the IP address from 'ipapi.co' server
  */
 public class IpApiLocationContext extends LocationContext {
+
     private static final Logger log = Logger.getLogger(IpApiLocationContext.class);
+
     private final HttpClientProvider httpClientProvider;
     private final IpAddressContext ipAddressContext;
+    private final AuthnSessionLocationContext authnSessionLocationContext;
+    private final GlobalCacheLocationContext globalCacheLocationContext;
 
     public IpApiLocationContext(KeycloakSession session) {
         super(session);
         this.httpClientProvider = session.getProvider(HttpClientProvider.class);
         this.ipAddressContext = UserContexts.getContext(session, IpAddressContext.class);
+        this.authnSessionLocationContext = UserContexts.getContext(session, AuthnSessionLocationContextFactory.PROVIDER_ID);
+        this.globalCacheLocationContext = UserContexts.getContext(session, GlobalCacheLocationContextFactory.PROVIDER_ID);
     }
 
     @Override
@@ -55,12 +62,10 @@ public class IpApiLocationContext extends LocationContext {
     @Override
     public Optional<LocationData> initData(@Nonnull RealmModel realm) {
         try {
-            var ipAddress = Optional.ofNullable(ipAddressContext)
-                    .map(f -> f.getData(realm))
-                    .flatMap(f -> f.stream().findAny())
-                    .orElse(null);
+            IPAddress ipAddress = ipAddressContext.getData(realm).orElse(null);
+
             if (ipAddress == null) {
-                log.tracef("Cannot obtain IP address");
+                log.trace("Cannot obtain IP address");
                 return Optional.empty();
             }
 
@@ -82,17 +87,33 @@ public class IpApiLocationContext extends LocationContext {
                     log.error(response.getStatusLine().getReasonPhrase());
                     return Optional.empty();
                 }
-                Optional<LocationData> data = Optional.ofNullable(JsonSerialization.readValue(response.getEntity().getContent(), IpApiLocationData.class));
+
+                Optional<LocationData> data = Optional.ofNullable(
+                        JsonSerialization.readValue(
+                                response.getEntity().getContent(),
+                                IpApiLocationData.class));
+
                 data.ifPresent(location -> {
-                    log.tracef("Location obtained: %s", data);
-                    // update the location cache for authnSession
-                    AuthnSessionLocationContext.updateCache(session.getContext().getAuthenticationSession(), ipAddress, location);
+                    log.tracef("Location obtained: %s", location);
+                    updateCaches(ipAddress, location);
                 });
+
                 return data;
             }
         } catch (URISyntaxException | IOException | RuntimeException e) {
-            log.error(e);
+            log.error("Failed to initialize location data", e);
         }
+
         return Optional.empty();
+    }
+
+    private void updateCaches(IPAddress effectiveIpAddress, LocationData location) {
+        if (authnSessionLocationContext != null) {
+            authnSessionLocationContext.updateCache(effectiveIpAddress, location);
+        }
+
+        if (globalCacheLocationContext != null) {
+            globalCacheLocationContext.updateCache(effectiveIpAddress, location);
+        }
     }
 }

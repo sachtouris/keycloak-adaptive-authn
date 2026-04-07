@@ -16,11 +16,13 @@
  */
 package io.github.mabartos.context.location;
 
+import io.github.mabartos.spi.condition.DefaultOperation;
 import io.github.mabartos.spi.condition.Operation;
 import io.github.mabartos.spi.condition.UserContextConditionFactory;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.provider.ProviderConfigurationBuilder;
+import org.keycloak.utils.StringUtil;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -34,13 +36,47 @@ public class LocationConditionFactory extends UserContextConditionFactory<Locati
     public static final String CITY_LIST_CONFIG = "cityListConfig";
     public static final String CITY_VALUE_CONFIG = "cityValueConfig";
 
-    public static final Operation<LocationContext> COUNTRY_IS = new Operation<>("COUNTRY_EQ", "country is", (realm, location, val) -> location.getData(realm).map(LocationData::getCountry).filter(f -> f.equals(val)).isPresent());
-    public static final Operation<LocationContext> COUNTRY_IS_NOT = new Operation<>("COUNTRY_NEQ", "country is not", (realm, location, val) -> location.getData(realm).map(LocationData::getCountry).filter(f -> f.equals(val)).isEmpty());
+    public static final Operation<LocationContext> COUNTRY_IS = new Operation<>(
+            "COUNTRY_" + DefaultOperation.ANY_OF.symbol(),
+            "country is",
+            LocationConditionFactory::matchesAnyCountry,
+            true);
+    public static final Operation<LocationContext> COUNTRY_IS_NOT = new Operation<>(
+            "COUNTRY_" + DefaultOperation.NONE_OF.symbol(),
+            "country is not",
+            (realm, location, vals) -> !matchesAnyCountry(realm, location, vals),
+            true);
 
-    public static final Operation<LocationContext> CITY_IS = new Operation<>("CITY_EQ", "city is", (realm, location, val) -> location.getData(realm).map(LocationData::getCity).filter(f -> f.equals(val)).isPresent());
-    public static final Operation<LocationContext> CITY_IS_NOT = new Operation<>("CITY_NEQ", "city is not", (realm, location, val) -> location.getData(realm).map(LocationData::getCity).filter(f -> f.equals(val)).isEmpty());
+    public static final Operation<LocationContext> CITY_IS = new Operation<>(
+            "CITY_" + DefaultOperation.ANY_OF.symbol(),
+            "city is",
+            LocationConditionFactory::matchesAnyCity,
+            true);
+    public static final Operation<LocationContext> CITY_IS_NOT = new Operation<>(
+            "CITY_" + DefaultOperation.NONE_OF.symbol(),
+            "city is not",
+            (realm, location, vals) -> !matchesAnyCity(realm, location, vals),
+            true);
+
 
     public LocationConditionFactory() {
+    }
+
+    private static boolean matchesAnyCountry(org.keycloak.models.RealmModel realm, LocationContext location, List<String> countries) {
+        String detectedCountry = location.getData(realm).map(LocationData::getCountry).orElse("<unknown>");
+        return normalizeValues(countries).stream().anyMatch(detectedCountry::equals);
+    }
+
+    private static boolean matchesAnyCity(org.keycloak.models.RealmModel realm, LocationContext location, List<String> cities) {
+        String detectedCity = location.getData(realm).map(LocationData::getCity).orElse("<unknown>");
+        return normalizeValues(cities).stream().anyMatch(detectedCity::equals);
+    }
+
+    private static List<String> normalizeValues(List<String> values) {
+        return values.stream()
+                .map(value -> value != null ? value.trim() : null)
+                .filter(StringUtil::isNotBlank)
+                .toList();
     }
 
     @Override
@@ -54,6 +90,46 @@ public class LocationConditionFactory extends UserContextConditionFactory<Locati
     }
 
     @Override
+    public List<ProviderConfigProperty> getConfigProperties() {
+        return ProviderConfigurationBuilder.create()
+                // Country
+                .property()
+                .name(COUNTRY_LIST_CONFIG)
+                .options(Stream.of(COUNTRY_IS, COUNTRY_IS_NOT).map(Operation::getText).toList())
+                .label("Country condition")
+                .helpText("whether the user's country must match or must not match the configured values.")
+                .type(ProviderConfigProperty.LIST_TYPE)
+                .add()
+
+                .property()
+                .name(COUNTRY_VALUE_CONFIG)
+                .label("Countries")
+                .helpText("Enter one or more country names, for example: France, Germany, Switzerland ...")
+                .type(ProviderConfigProperty.MULTIVALUED_STRING_TYPE)
+                .defaultValue(List.of())
+                .add()
+
+                // City
+                .property()
+                .name(CITY_LIST_CONFIG)
+                .options(Stream.of(CITY_IS, CITY_IS_NOT).map(Operation::getText).toList())
+                .label("City condition")
+                .helpText("Defines whether the user's city must match or must not match the configured value.")
+                .type(ProviderConfigProperty.LIST_TYPE)
+                .add()
+
+                .property()
+                .name(CITY_VALUE_CONFIG)
+                .label("City")
+                .helpText("Enter one or more city names, for example: Paris, Berlin, Zurich ...")
+                .type(ProviderConfigProperty.MULTIVALUED_STRING_TYPE)
+                .defaultValue(List.of())
+                .add()
+
+                .build();
+    }
+
+    @Override
     public String getDisplayType() {
         return "Condition - Location";
     }
@@ -61,42 +137,6 @@ public class LocationConditionFactory extends UserContextConditionFactory<Locati
     @Override
     public String getHelpText() {
         return "Condition matching Location attributes";
-    }
-
-    @Override
-    public List<ProviderConfigProperty> getConfigProperties() {
-        return ProviderConfigurationBuilder.create()
-                // Country
-                .property()
-                .name(COUNTRY_LIST_CONFIG)
-                .options(Stream.of(COUNTRY_IS, COUNTRY_IS_NOT).map(Operation::getText).toList())
-                .label(COUNTRY_LIST_CONFIG)
-                .helpText(COUNTRY_LIST_CONFIG + ".tooltip")
-                .type(ProviderConfigProperty.LIST_TYPE)
-                .add()
-                .property()
-                .name(COUNTRY_VALUE_CONFIG)
-                .label(COUNTRY_VALUE_CONFIG)
-                .helpText(COUNTRY_VALUE_CONFIG + ".tooltip")
-                .type(ProviderConfigProperty.STRING_TYPE)
-                .defaultValue("")
-                .add()
-                // City
-                .property()
-                .name(CITY_LIST_CONFIG)
-                .options(Stream.of(CITY_IS, CITY_IS_NOT).map(Operation::getText).toList())
-                .label(CITY_LIST_CONFIG)
-                .helpText(CITY_LIST_CONFIG + ".tooltip")
-                .type(ProviderConfigProperty.LIST_TYPE)
-                .add()
-                .property()
-                .name(CITY_VALUE_CONFIG)
-                .label(CITY_VALUE_CONFIG)
-                .helpText(CITY_VALUE_CONFIG + ".tooltip")
-                .type(ProviderConfigProperty.STRING_TYPE)
-                .defaultValue("")
-                .add()
-                .build();
     }
 
     @Override

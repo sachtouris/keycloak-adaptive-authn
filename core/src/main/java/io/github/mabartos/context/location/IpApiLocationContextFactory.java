@@ -19,12 +19,21 @@ package io.github.mabartos.context.location;
 import io.github.mabartos.context.ip.IPAddress;
 import io.github.mabartos.spi.context.UserContextFactory;
 import org.keycloak.models.KeycloakSession;
+import org.keycloak.quarkus.runtime.configuration.Configuration;
 
+import java.util.Optional;
 import java.util.function.Function;
 
 public class IpApiLocationContextFactory implements UserContextFactory<LocationContext> {
     public static final String PROVIDER_ID = "ip-api-location-context";
-    public static final Function<IPAddress, String> SERVICE_URL = ip -> String.format("https://ipapi.co/%s/json", ip.toString());
+    private static final String API_TOKEN_PROPERTY = "location.ipapi.token";
+
+    public static final Function<IPAddress, String> SERVICE_URL = ip -> {
+        String tokenPart = getApiToken()
+                .map(token -> "?token=" + token)
+                .orElse("");
+        return String.format("https://ipapi.co/%s/json%s", ip.toString(), tokenPart);
+    };
 
     @Override
     public IpApiLocationContext create(KeycloakSession session) {
@@ -39,5 +48,10 @@ public class IpApiLocationContextFactory implements UserContextFactory<LocationC
     @Override
     public Class<LocationContext> getUserContextClass() {
         return LocationContext.class;
+    }
+
+    static Optional<String> getApiToken() {
+        return Configuration.getOptionalValue(API_TOKEN_PROPERTY)
+                .filter(token -> !token.isBlank());
     }
 }
