@@ -36,6 +36,7 @@ import org.keycloak.services.ui.extend.UiTabProviderFactory;
 import org.keycloak.utils.StringUtil;
 
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -93,6 +94,10 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
         doIfPresent(model.get(EVALUATOR_RETRIES_CONFIG), value -> realm.setAttribute(EVALUATOR_RETRIES_CONFIG, value));
         doIfPresent(model.get(RISK_SCORE_ALGORITHM_CONFIG), value -> realm.setAttribute(RISK_SCORE_ALGORITHM_CONFIG, value));
 
+        algorithmFactories.forEach(algFactory -> algFactory.getConfigProperties().forEach(prop ->
+                doIfPresent(model.get(prop.getName()), value -> realm.setAttribute(prop.getName(), value))
+        ));
+
         riskEvaluatorFactories.forEach(evalFactory -> {
             // Enabled
             var enabled = model.get(isEnabledConfig(evalFactory.evaluatorClass()));
@@ -123,6 +128,14 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
         doIfPresent(newModel.get(EVALUATOR_TIMEOUT_CONFIG), value -> realm.setAttribute(EVALUATOR_TIMEOUT_CONFIG, value));
         doIfPresent(newModel.get(EVALUATOR_RETRIES_CONFIG), value -> realm.setAttribute(EVALUATOR_RETRIES_CONFIG, value));
         doIfPresent(newModel.get(RISK_SCORE_ALGORITHM_CONFIG), value -> realm.setAttribute(RISK_SCORE_ALGORITHM_CONFIG, value));
+
+        algorithmFactories.forEach(algFactory -> algFactory.getConfigProperties().forEach(prop -> {
+            var oldVal = oldModel.get(prop.getName());
+            var newVal = newModel.get(prop.getName());
+            if (!Objects.equals(oldVal, newVal)) {
+                doIfPresent(newVal, value -> realm.setAttribute(prop.getName(), value));
+            }
+        }));
 
         riskEvaluatorFactories.forEach(f -> {
             {
@@ -155,6 +168,17 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
 
         validateInteger(model.get(EVALUATOR_TIMEOUT_CONFIG), "Timeout");
         validateInteger(model.get(EVALUATOR_RETRIES_CONFIG), "Retries");
+
+        algorithmFactories.forEach(algFactory -> algFactory.getConfigProperties().forEach(prop -> {
+            var value = model.get(prop.getName());
+            if (StringUtil.isNotBlank(value)) {
+                try {
+                    Double.parseDouble(value);
+                } catch (NumberFormatException e) {
+                    throw new ComponentValidationException(String.format("'%s' must be a valid number", prop.getLabel()));
+                }
+            }
+        }));
 
         riskEvaluatorFactories.forEach(f -> {
             try {
@@ -211,8 +235,14 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
                 .helpText("Algorithm used to compute the overall risk score from individual evaluator results")
                 .type(ProviderConfigProperty.LIST_TYPE)
                 .options(algorithmFactories.stream().map(RiskScoreAlgorithmFactory::getId).toList())
+                .defaultValue(algorithmFactories.isEmpty() ? null : algorithmFactories.getFirst().getId())
                 .add()
                 .build();
+
+        // Add Algorithm-specific Properties
+        list.addAll(algorithmFactories.stream()
+                .flatMap(f -> f.getConfigProperties().stream())
+                .toList());
 
         // Add Risk Evaluator Properties
         list.addAll(riskEvaluatorFactories.stream()
@@ -229,7 +259,10 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
     @Override
     public void postInit(KeycloakSessionFactory factory) {
         this.riskEvaluatorFactories = factory.getProviderFactoriesStream(RiskEvaluator.class).map(f -> (RiskEvaluatorFactory) f).toList();
-        this.algorithmFactories = factory.getProviderFactoriesStream(RiskScoreAlgorithm.class).map(f -> (RiskScoreAlgorithmFactory) f).toList();
+        this.algorithmFactories = factory.getProviderFactoriesStream(RiskScoreAlgorithm.class)
+                .map(f -> (RiskScoreAlgorithmFactory) f)
+                .sorted(Comparator.comparingInt(RiskScoreAlgorithmFactory::order).reversed())
+                .toList();
     }
 
     @Override

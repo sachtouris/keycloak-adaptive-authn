@@ -11,6 +11,7 @@ import io.github.mabartos.spi.level.Risk;
 import io.github.mabartos.spi.level.SimpleRiskLevels;
 import jakarta.annotation.Nonnull;
 import jakarta.annotation.Nullable;
+import org.jboss.logging.Logger;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
@@ -18,6 +19,9 @@ import org.keycloak.models.UserModel;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static io.github.mabartos.engine.algorithm.LogOddsRiskAlgorithmFactory.BIAS_CONFIG;
+import static io.github.mabartos.engine.algorithm.LogOddsRiskAlgorithmFactory.DEFAULT_BIAS;
 
 import static java.util.Optional.of;
 
@@ -27,6 +31,8 @@ import static java.util.Optional.of;
  * Evidence scores are aggregated and transformed using logistic function to produce final risk probability.
  */
 public class LogOddsRiskAlgorithm implements RiskScoreAlgorithm {
+    private static final Logger logger = Logger.getLogger(LogOddsRiskAlgorithm.class);
+
     private final ValuesMapper valuesMapper;
     private final SimpleRiskLevels simpleRiskLevels;
     private final AdvancedRiskLevels advancedRiskLevels;
@@ -49,14 +55,20 @@ public class LogOddsRiskAlgorithm implements RiskScoreAlgorithm {
      * Future: Should be configurable per client, as different clients may have
      * different fraud rates even within the same realm.
      */
-    private final double biasScore;
+    private final double defaultBias;
 
-    public LogOddsRiskAlgorithm(KeycloakSession session, double biasScore, SimpleRiskLevels simpleRiskLevels, AdvancedRiskLevels advancedRiskLevels) {
-        this.biasScore = biasScore;
+    public LogOddsRiskAlgorithm(KeycloakSession session, double defaultBias, SimpleRiskLevels simpleRiskLevels, AdvancedRiskLevels advancedRiskLevels) {
+        this.defaultBias = defaultBias;
         this.simpleRiskLevels = simpleRiskLevels;
         this.advancedRiskLevels = advancedRiskLevels;
         this.valuesMapper = new ValuesMapper();
         this.storedRiskProvider = session.getProvider(StoredRiskProvider.class);
+    }
+
+    private double getBias(@Nonnull RealmModel realm) {
+        return Optional.ofNullable(realm.getAttribute(BIAS_CONFIG))
+                .map(Double::parseDouble)
+                .orElse(defaultBias);
     }
 
     @Override
@@ -92,13 +104,18 @@ public class LogOddsRiskAlgorithm implements RiskScoreAlgorithm {
                 .sum();
 
         // Apply logistic transformation: P(fraud) = 1 / (1 + exp(-(evidence + bias)))
-        double totalEvidence = trustWeightedEvidenceSum + biasScore;
+        double bias = getBias(realm);
+        double totalEvidence = trustWeightedEvidenceSum + bias;
         double riskProbability = logisticTransform(totalEvidence);
+
+        logger.debugf("Log-Odds evaluation (phase: %s) - evidence: %f, bias: %f, totalEvidence: %f, riskProbability: %f",
+                phase, trustWeightedEvidenceSum, bias, totalEvidence, riskProbability);
 
         var risk = ResultRisk.of(riskProbability);
 
         storedRiskProvider.storeRisk(risk, phase);
         storedRiskProvider.storeAdditionalData(getTotalEvidenceProperty(phase), Double.toString(totalEvidence));
+        storedRiskProvider.storeAdditionalData(getBiasProperty(phase), Double.toString(bias));
 
         return risk;
     }
@@ -129,6 +146,10 @@ public class LogOddsRiskAlgorithm implements RiskScoreAlgorithm {
 
     private String getTotalEvidenceProperty(RiskEvaluator.EvaluationPhase phase) {
         return StoredRiskProperties.getAlgorithmPrefix(phase) + "total-evidence";
+    }
+
+    private String getBiasProperty(RiskEvaluator.EvaluationPhase phase) {
+        return StoredRiskProperties.getAlgorithmPrefix(phase) + "bias";
     }
 
     /**

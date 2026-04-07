@@ -7,6 +7,11 @@ import io.github.mabartos.spi.level.RiskLevel;
 import io.github.mabartos.spi.level.SimpleRiskLevels;
 import org.keycloak.models.KeycloakSession;
 
+/**
+ * @deprecated Use {@link LogOddsRiskAlgorithmFactory} instead, which provides more accurate
+ * Bayesian evidence-based risk scoring with configurable bias.
+ */
+@Deprecated(forRemoval = true)
 public class WeightedAvgRiskAlgorithmFactory implements RiskScoreAlgorithmFactory {
     public static final String PROVIDER_ID = "weighted-average";
 
@@ -32,12 +37,12 @@ public class WeightedAvgRiskAlgorithmFactory implements RiskScoreAlgorithmFactor
 
     @Override
     public String getName() {
-        return "Weighted average";
+        return "Weighted average (Deprecated)";
     }
 
     @Override
     public String getDescription() {
-        return "Compute the overall risk score by leveraging weighted average algorithm";
+        return "[Deprecated] Compute the overall risk score by leveraging weighted average algorithm. Use 'Log-Odds' instead.";
     }
 
     @Override
