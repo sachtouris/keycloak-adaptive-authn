@@ -68,6 +68,13 @@ For more information and setup, see the <a href="docs/ai-engine-integration.md">
 
 **Privacy & GDPR Compliance:** All user data (IP addresses, device info) is automatically anonymized before being sent to AI services. See [Privacy and Anonymization Guide](docs/privacy-and-anonymization.md) for details.
 
+## Supported Keycloak Versions
+
+| Keycloak Version | Supported |
+|------------------|-----------|
+| 26.5.x           | Yes       |
+| main (nightly)   | Yes       |
+
 ## Installation
 You can install this extension to your Keycloak deployment either using the generated JAR or deploy it as a Quarkus extension.
 
