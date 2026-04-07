@@ -90,6 +90,10 @@ for the image described in the [README](adaptive/README.md#integration-with-open
 
 ℹ️ **INFO:** If you have installed Docker, use `docker` instead of `podman`.
 
+## Realm Setup
+
+If you want to use the extension on your **own existing realm** instead of the provided example realm, see the [Realm Setup Guide](realm-setup.md) for the required Events and Brute Force configuration.
+
 ## Show example flow
 
 In order to see the execution of the authentication flow from the example realm `adaptive`, just access the url
