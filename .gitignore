@@ -5,6 +5,7 @@ target/
 
 # Ignore all folders starting with dot except the exceptions
 .*/
+!.github/
 
 pom.xml.versionsBackup
 
