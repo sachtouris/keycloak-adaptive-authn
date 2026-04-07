@@ -5,7 +5,7 @@
 The AI engine provider is configured via the Keycloak SPI option:
 
 ```bash
-KC_SPI_AI_ENGINE_PROVIDER=claude
+KC_SPI_AI_ENGINE__PROVIDER=claude
 ```
 
 Available providers: `granite` (default), `gpt`, `claude`, `gemini`.

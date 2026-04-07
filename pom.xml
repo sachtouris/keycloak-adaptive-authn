@@ -191,7 +191,7 @@
                                     <argument>--spi-risk-engine--provider=default-vt</argument>
                                 </arguments>
                                 <environmentVariables>
-                                    <IP_ADDRESS_USE_TESTING>true</IP_ADDRESS_USE_TESTING>
+                                    <KC_ADAPTIVE_TESTING_RANDOM_IP_ENABLED>true</KC_ADAPTIVE_TESTING_RANDOM_IP_ENABLED>
                                 </environmentVariables>
                             </configuration>
                         </execution>
