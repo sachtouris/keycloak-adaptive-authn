@@ -1,5 +1,7 @@
 ![Keycloak](docs/img/adaptive-authentication-logo.png)
 
+<video src="docs/img/AdaptiveAuthn.mp4" width="1050" autoplay loop muted playsinline></video>
+
 # Keycloak Adaptive Authentication
 
 * Change **authentication requirements** in real-time based on wider context
