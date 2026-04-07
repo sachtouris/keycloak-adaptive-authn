@@ -22,7 +22,7 @@ import static io.github.mabartos.spi.engine.RiskEngine.DEFAULT_CONTINUOUS_RISK_E
 public class LoginEventsEventListener implements EventListenerProvider {
     private static final Logger log = Logger.getLogger(LoginEventsEventListener.class);
 
-    protected static final String USER_ATTRIBUTE_CONTINUOUS_EVALUATIONS_TIMER_SET = "has_continuous_evaluations_timer_set";
+    protected static final String USER_ATTRIBUTE_CONTINUOUS_EVALUATIONS_TIMER_SET = "adaptive.engine.continuousTimerSet";
     private final KeycloakSession session;
     private final TimerProvider timerProvider;
 

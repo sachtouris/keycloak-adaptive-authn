@@ -24,6 +24,6 @@ public interface RiskEngineFactory extends ProviderFactory<RiskEngine> {
     Duration DEFAULT_EVALUATOR_TIMEOUT = Duration.ofMillis(2500L);
     int DEFAULT_EVALUATOR_RETRIES = 3;
 
-    String EVALUATOR_TIMEOUT_CONFIG = "riskEvaluatorTimeoutConfig";
-    String EVALUATOR_RETRIES_CONFIG = "riskEvaluatorRetriesConfig";
+    String EVALUATOR_TIMEOUT_CONFIG = "adaptive.engine.timeout";
+    String EVALUATOR_RETRIES_CONFIG = "adaptive.engine.retries";
 }

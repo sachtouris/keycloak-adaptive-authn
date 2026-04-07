@@ -31,8 +31,8 @@ import java.util.List;
  */
 public interface RiskEvaluatorFactory extends ProviderFactory<RiskEvaluator>, EnvironmentDependentProviderFactory, ConfiguredProvider {
     String NAME_PREFIX = "Risk Evaluator - ";
-    String TRUST_CONFIG = "riskEvaluatorTrustConfig";
-    String ENABLED_CONFIG = "riskEvaluatorEnabledConfig";
+    String TRUST_CONFIG = "adaptive.evaluator.trust";
+    String ENABLED_CONFIG = "adaptive.evaluator.enabled";
 
     /**
      * Get display name of the risk evaluator

@@ -21,7 +21,7 @@ public class LogOddsRiskAlgorithmFactory implements RiskScoreAlgorithmFactory {
      * the bias must compensate for the accumulated evidence across phases.
      */
     public static final double DEFAULT_BIAS = -0.5;
-    public static final String BIAS_CONFIG = "logOddsAlgorithmBias";
+    public static final String BIAS_CONFIG = "adaptive.algorithm.log-odds.bias";
 
     // Simple 3-level thresholds calibrated for log-odds
     private static final RiskLevel SIMPLE_LEVEL_LOW = new RiskLevel(SimpleRiskLevels.LOW, 0.0, 0.50);

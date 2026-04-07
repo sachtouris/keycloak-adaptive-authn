@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class KnownLocationContext extends AbstractUserContext<Set<LocationData>> implements OnSuccessfulLoginCallback {
     private static final Logger logger = Logger.getLogger(KnownLocationContext.class);
-    private static final String KNOWN_LOCATIONS_ATTR = "adaptive_authn.known_locations";
+    private static final String KNOWN_LOCATIONS_ATTR = "adaptive.location.known";
     // TODO later, it might be configurable
     private static final int MAX_STORED_LOCATIONS = 10;
 
