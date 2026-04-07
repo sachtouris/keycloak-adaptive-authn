@@ -3,6 +3,11 @@ name: Publish Release to GitHub Packages
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release version to publish (e.g. 0.4.8)'
+        required: true
 
 jobs:
   publish:
@@ -22,7 +27,7 @@ jobs:
           cache: maven
 
       - name: Set release version
-        run: ./set-version.sh ${{ github.event.release.tag_name }}
+        run: ./set-version.sh ${{ github.event.release.tag_name || inputs.version }}
 
       - name: Deploy to GitHub Packages
         run: ./mvnw deploy -DskipTests -Pbuild-distribution
