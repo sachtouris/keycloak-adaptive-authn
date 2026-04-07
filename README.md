@@ -1,6 +1,6 @@
 ![Keycloak](docs/img/adaptive-authentication-logo.png)
 
-<video src="docs/img/AdaptiveAuthn.mp4" width="1050" autoplay loop muted playsinline></video>
+<img src="docs/img/adaptive-authn.gif" alt="Adaptive Authentication Demo" width="1050">
 
 # Keycloak Adaptive Authentication
 
