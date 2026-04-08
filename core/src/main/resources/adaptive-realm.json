@@ -47,6 +47,7 @@
   "quickLoginCheckMilliSeconds" : 1000,
   "maxDeltaTimeSeconds" : 60,
   "failureFactor" : 60,
+  "maxSecondaryAuthFailures" : 0,
   "roles" : {
     "realm" : [ {
       "id" : "715a5be5-80e1-4943-80d2-5966cb574d0a",
@@ -419,10 +420,10 @@
     "email" : "user@user",
     "emailVerified" : true,
     "attributes" : {
-      "adaptive.time.pattern.meanSin" : [ "-0.12990381056766576" ],
       "adaptive.engine.continuousTimerSet" : [ "true" ],
-      "adaptive.location.known" : [ "Czechia:Prague" ],
-      "adaptive.time.pattern.meanCos" : [ "-0.07500000000000007" ]
+      "adaptive.time.pattern.meanSin" : [ "-0.12990381056766576" ],
+      "adaptive.time.pattern.meanCos" : [ "-0.07500000000000007" ],
+      "adaptive.location.known" : [ "Czechia:Prague" ]
     },
     "enabled" : true,
     "createdTimestamp" : 1716930931775,
@@ -1255,7 +1256,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "saml-role-list-mapper", "saml-user-property-mapper", "oidc-address-mapper", "oidc-full-name-mapper", "oidc-usermodel-property-mapper", "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "oidc-sha256-pairwise-sub-mapper" ]
+        "allowed-protocol-mapper-types" : [ "saml-role-list-mapper", "oidc-full-name-mapper", "oidc-usermodel-property-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "oidc-address-mapper" ]
       }
     }, {
       "id" : "177c422a-5da4-495f-97bb-365930521275",
@@ -1264,7 +1265,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "saml-role-list-mapper", "oidc-usermodel-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "saml-user-attribute-mapper", "saml-user-property-mapper", "oidc-address-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-usermodel-attribute-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "oidc-address-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-role-list-mapper", "saml-user-attribute-mapper", "saml-user-property-mapper" ]
       }
     }, {
       "id" : "f03f1114-52b9-4eda-8519-d379aab18f59",
@@ -1335,19 +1336,19 @@
       "providerId" : "Risk-based policies",
       "subComponents" : { },
       "config" : {
-        "adaptive.engine.retries" : [ "3" ],
-        "tab" : [ "risk-based-policies" ],
-        "adaptive.evaluator.enabled-DefaultUserRoleEvaluatorFactory" : [ "true" ],
-        "adaptive.evaluator.enabled-BrowserRiskEvaluatorFactory" : [ "true" ],
         "adaptive.evaluator.enabled-LocationRiskEvaluatorFactory" : [ "true" ],
-        "adaptive.evaluator.enabled-OperatingSystemRiskEvaluatorFactory" : [ "true" ],
-        "realm" : [ "adaptive" ],
-        "adaptive.engine.timeout" : [ "2500" ],
-        "riskLevelProvider" : [ "Risk levels - 3 levels (Low, Medium, High)" ],
-        "adaptive.evaluator.enabled-AiLoginFailuresRiskEvaluatorFactory" : [ "true" ],
         "adaptive.evaluator.enabled-LoginFailuresRiskEvaluatorFactory" : [ "true" ],
+        "tab" : [ "risk-based-policies" ],
+        "adaptive.evaluator.enabled-AiDeviceRiskEvaluatorFactory" : [ "true" ],
+        "adaptive.evaluator.enabled-DefaultUserRoleEvaluatorFactory" : [ "true" ],
+        "adaptive.evaluator.enabled-AiLoginFailuresRiskEvaluatorFactory" : [ "true" ],
+        "adaptive.evaluator.enabled-BrowserRiskEvaluatorFactory" : [ "true" ],
+        "adaptive.engine.retries" : [ "3" ],
+        "realm" : [ "adaptive" ],
+        "adaptive.evaluator.enabled-OperatingSystemRiskEvaluatorFactory" : [ "true" ],
+        "riskLevelProvider" : [ "Risk levels - 3 levels (Low, Medium, High)" ],
         "adaptive.engine.enabled" : [ "true" ],
-        "adaptive.evaluator.enabled-AiDeviceRiskEvaluatorFactory" : [ "true" ]
+        "adaptive.engine.timeout" : [ "2500" ]
       }
     } ]
   },
@@ -2468,22 +2469,20 @@
   "firstBrokerLoginFlow" : "first broker login",
   "attributes" : {
     "cibaBackchannelTokenDeliveryMode" : "poll",
-    "adaptive.engine.retries" : "3",
-    "adaptive.evaluator.enabled-BrowserRiskEvaluatorFactory" : "true",
+    "adaptive.evaluator.enabled-LocationRiskEvaluatorFactory" : "true",
+    "adaptive.evaluator.enabled-LoginFailuresRiskEvaluatorFactory" : "true",
+    "adaptive.evaluator.enabled-AiDeviceRiskEvaluatorFactory" : "true",
     "clientOfflineSessionIdleTimeout" : "0",
     "adaptive.engine.timeout" : "2500",
-    "adaptive.evaluator.enabled-AiDeviceRiskEvaluatorFactory" : "true",
     "adaptive.engine.enabled" : "true",
-    "adaptive.evaluator.enabled-LoginFailuresRiskEvaluatorFactory" : "true",
     "cibaExpiresIn" : "120",
     "frontendUrl" : "",
-    "adaptive.evaluator.enabled-LocationRiskEvaluatorFactory" : "true",
+    "scimApiEnabled" : "false",
+    "adaptive.evaluator.enabled-DefaultUserRoleEvaluatorFactory" : "true",
     "cibaAuthRequestedUserHint" : "login_hint",
     "clientOfflineSessionMaxLifespan" : "0",
     "oauth2DevicePollingInterval" : "5",
     "clientSessionIdleTimeout" : "0",
-    "adaptive.evaluator.enabled-DefaultUserRoleEvaluatorFactory" : "true",
-    "adaptive.evaluator.enabled-AiLoginFailuresRiskEvaluatorFactory" : "true",
     "cibaInterval" : "5",
     "realmReusableOtpCode" : "false",
     "oauth2DeviceCodeLifespan" : "600",
@@ -2491,15 +2490,18 @@
     "clientSessionMaxLifespan" : "0",
     "acr.loa.map" : "{}",
     "adminEventsExpiration" : "",
+    "adaptive.engine.retries" : "3",
+    "adaptive.evaluator.enabled-BrowserRiskEvaluatorFactory" : "true",
+    "adaptive.evaluator.enabled-AiLoginFailuresRiskEvaluatorFactory" : "true",
     "adaptive.evaluator.enabled-OperatingSystemRiskEvaluatorFactory" : "true",
     "riskLevelProvider" : "simple-risk-levels"
   },
-  "keycloakVersion" : "999.0.0-SNAPSHOT",
+  "keycloakVersion" : "26.6.0",
   "userManagedAccessAllowed" : false,
   "organizationsEnabled" : false,
   "verifiableCredentialsEnabled" : false,
   "adminPermissionsEnabled" : false,
-  "scimEnabled" : false,
+  "scimApiEnabled" : false,
   "clientProfiles" : {
     "profiles" : [ ]
   },
