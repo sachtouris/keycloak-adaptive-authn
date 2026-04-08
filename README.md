@@ -74,6 +74,7 @@ For more information and setup, see the <a href="docs/ai-engine-integration.md">
 
 | Keycloak Version | Supported |
 |------------------|-----------|
+| 26.6.x           | Yes       |
 | 26.5.x           | Yes       |
 | main (nightly)   | Yes       |
 

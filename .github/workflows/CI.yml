@@ -17,6 +17,8 @@ jobs:
             extra-args: ""
           - keycloak-version: 26.5.7
             extra-args: -Pdist-maven -Dkeycloak.version=26.5.7
+          - keycloak-version: 26.6.0
+            extra-args: -Pdist-maven -Dkeycloak.version=26.6.0
 
     name: Keycloak ${{ matrix.keycloak-version }}
     steps:
