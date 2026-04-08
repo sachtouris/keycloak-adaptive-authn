@@ -188,7 +188,6 @@
                                     <argument>
                                         --log-level=io.github.mabartos:debug,io.quarkus.opentelemetry.runtime.exporter.otlp.sender:error,io.opentelemetry.exporter.internal.grpc:error
                                     </argument>
-                                    <argument>--spi-risk-engine--provider=default-vt</argument>
                                 </arguments>
                                 <environmentVariables>
                                     <KC_ADAPTIVE_TESTING_RANDOM_IP_ENABLED>true</KC_ADAPTIVE_TESTING_RANDOM_IP_ENABLED>

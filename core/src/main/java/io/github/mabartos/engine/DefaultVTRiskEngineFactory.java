@@ -31,7 +31,7 @@ import org.keycloak.provider.EnvironmentDependentProviderFactory;
  * and becomes stable in Java 23+.
  */
 public class DefaultVTRiskEngineFactory implements RiskEngineFactory, EnvironmentDependentProviderFactory {
-    public static final String PROVIDER_ID = "default-vt";
+    public static final String PROVIDER_ID = "default";
 
     @Override
     public RiskEngine create(KeycloakSession session) {
