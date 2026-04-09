@@ -42,7 +42,7 @@ import static io.github.mabartos.spi.level.Risk.Score.VERY_SMALL;
 public class RecaptchaRiskEvaluator extends DeviceRiskEvaluator implements Authenticator {
     private static final Logger log = Logger.getLogger(RecaptchaRiskEvaluator.class);
 
-    protected static final String CAPTCHA_TOKEN_KEY = "adaptive.recaptcha.token";
+    protected static final String CAPTCHA_TOKEN_KEY = "adaptive-recaptcha-token";
     protected static final String G_RECAPTCHA_RESPONSE = "g-recaptcha-response";
 
     private final KeycloakSession session;

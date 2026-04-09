@@ -38,7 +38,7 @@ import static io.github.mabartos.spi.level.Risk.Score.*;
  *
  * <li><strong>Pattern Learning:</strong> Uses {@link TypicalAccessTimeContext} to retrieve the
  * time pattern profile, which is built from historical login data and stored in user attributes
- * ({@code adaptive.time.pattern.meanSin}, {@code adaptive.time.pattern.meanCos}). The context bootstraps the profile
+ * ({@code adaptive-time-pattern-meanSin}, {@code adaptive-time-pattern-meanCos}). The context bootstraps the profile
  * from historical events if no saved profile exists. Requires 5+ logins before evaluating risk.</li>
  *
  * <li><strong>Risk Scoring:</strong> Calculates how many hours the current login deviates from

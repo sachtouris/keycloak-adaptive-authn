@@ -419,7 +419,7 @@
     "email" : "user@user",
     "emailVerified" : true,
     "attributes" : {
-      "adaptive.engine.continuousTimerSet" : [ "true" ]
+      "adaptive-engine-continuousTimerSet" : [ "true" ]
     },
     "enabled" : true,
     "createdTimestamp" : 1716930931775,
@@ -1332,17 +1332,17 @@
       "providerId" : "Risk-based policies",
       "subComponents" : { },
       "config" : {
-        "adaptive.engine.retries" : [ "3" ],
+        "adaptive-engine-retries" : [ "3" ],
         "tab" : [ "risk-based-policies" ],
-        "adaptive.evaluator.enabled-DefaultUserRoleEvaluator" : [ "true" ],
-        "adaptive.evaluator.enabled-BrowserRiskEvaluator" : [ "true" ],
-        "adaptive.evaluator.enabled-KnownLocationRiskEvaluator" : [ "true" ],
-        "adaptive.evaluator.enabled-OperatingSystemRiskEvaluator" : [ "true" ],
+        "adaptive-evaluator-enabled-DefaultUserRoleEvaluator" : [ "true" ],
+        "adaptive-evaluator-enabled-BrowserRiskEvaluator" : [ "true" ],
+        "adaptive-evaluator-enabled-KnownLocationRiskEvaluator" : [ "true" ],
+        "adaptive-evaluator-enabled-OperatingSystemRiskEvaluator" : [ "true" ],
         "realm" : [ "adaptive" ],
         "riskLevelProvider" : [ "Risk levels - 3 levels (Low, Medium, High)" ],
-        "adaptive.engine.timeout" : [ "2500" ],
-        "adaptive.evaluator.enabled-LoginFailuresRiskEvaluator" : [ "true" ],
-        "adaptive.engine.enabled" : [ "true" ]
+        "adaptive-engine-timeout" : [ "2500" ],
+        "adaptive-evaluator-enabled-LoginFailuresRiskEvaluator" : [ "true" ],
+        "adaptive-engine-enabled" : [ "true" ]
       }
     } ]
   },
@@ -2393,20 +2393,20 @@
   "firstBrokerLoginFlow" : "first broker login",
   "attributes" : {
     "cibaBackchannelTokenDeliveryMode" : "poll",
-    "adaptive.engine.retries" : "3",
-    "adaptive.evaluator.enabled-BrowserRiskEvaluator" : "true",
+    "adaptive-engine-retries" : "3",
+    "adaptive-evaluator-enabled-BrowserRiskEvaluator" : "true",
     "clientOfflineSessionIdleTimeout" : "0",
-    "adaptive.engine.timeout" : "2500",
-    "adaptive.engine.enabled" : "true",
-    "adaptive.evaluator.enabled-LoginFailuresRiskEvaluator" : "true",
+    "adaptive-engine-timeout" : "2500",
+    "adaptive-engine-enabled" : "true",
+    "adaptive-evaluator-enabled-LoginFailuresRiskEvaluator" : "true",
     "cibaExpiresIn" : "120",
     "frontendUrl" : "",
-    "adaptive.evaluator.enabled-KnownLocationRiskEvaluator" : "true",
+    "adaptive-evaluator-enabled-KnownLocationRiskEvaluator" : "true",
     "cibaAuthRequestedUserHint" : "login_hint",
     "clientOfflineSessionMaxLifespan" : "0",
     "oauth2DevicePollingInterval" : "5",
     "clientSessionIdleTimeout" : "0",
-    "adaptive.evaluator.enabled-DefaultUserRoleEvaluator" : "true",
+    "adaptive-evaluator-enabled-DefaultUserRoleEvaluator" : "true",
     "cibaInterval" : "5",
     "realmReusableOtpCode" : "false",
     "oauth2DeviceCodeLifespan" : "600",
@@ -2414,7 +2414,7 @@
     "clientSessionMaxLifespan" : "0",
     "acr.loa.map" : "{}",
     "adminEventsExpiration" : "",
-    "adaptive.evaluator.enabled-OperatingSystemRiskEvaluator" : "true",
+    "adaptive-evaluator-enabled-OperatingSystemRiskEvaluator" : "true",
     "riskLevelProvider" : "simple-risk-levels"
   },
   "keycloakVersion" : "26.4.7",

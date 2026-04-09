@@ -60,8 +60,8 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
     private List<RiskEvaluatorFactory> riskEvaluatorFactories = Collections.emptyList();
     private List<RiskScoreAlgorithmFactory> algorithmFactories = Collections.emptyList();
 
-    public static final String RISK_BASED_AUTHN_ENABLED_CONFIG = "adaptive.engine.enabled";
-    public static final String RISK_SCORE_ALGORITHM_CONFIG = "adaptive.engine.scoreAlgorithm";
+    public static final String RISK_BASED_AUTHN_ENABLED_CONFIG = "adaptive-engine-enabled";
+    public static final String RISK_SCORE_ALGORITHM_CONFIG = "adaptive-engine-scoreAlgorithm";
 
     @Override
     public String getId() {

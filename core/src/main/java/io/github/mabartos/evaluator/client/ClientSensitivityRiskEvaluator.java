@@ -26,7 +26,7 @@ import java.util.Set;
  */
 public class ClientSensitivityRiskEvaluator extends AbstractRiskEvaluator {
 
-    public static final String RISK_SENSITIVITY_ATTRIBUTE = "adaptive.client.riskSensitivity";
+    public static final String RISK_SENSITIVITY_ATTRIBUTE = "adaptive-client-riskSensitivity";
 
     static final Map<String, Risk.Score> DEFAULT_CLIENT_SENSITIVITY = Map.of(
             Constants.ADMIN_CONSOLE_CLIENT_ID, Risk.Score.HIGH,

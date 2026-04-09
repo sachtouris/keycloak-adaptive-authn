@@ -35,8 +35,8 @@ import java.util.Optional;
 public class AuthnSessionLocationContext extends LocationContext {
     private static final Logger log = Logger.getLogger(AuthnSessionLocationContext.class);
 
-    private static final String LAST_IP_KEY = "adaptive.location.lastIp";
-    private static final String LAST_LOCATION_KEY = "adaptive.location.lastData";
+    private static final String LAST_IP_KEY = "adaptive-location-lastIp";
+    private static final String LAST_LOCATION_KEY = "adaptive-location-lastData";
 
     private final IpAddressContext ipAddressContext;
 

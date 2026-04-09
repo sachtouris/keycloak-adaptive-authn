@@ -33,8 +33,8 @@ public class TypicalAccessTimeContext extends AbstractUserContext<TypicalAccessT
     public static final String PROVIDER_ID = "typical-access-time-context";
 
     // User attribute keys for storing profile state
-    private static final String ATTR_MEAN_SIN = "adaptive.time.pattern.meanSin";
-    private static final String ATTR_MEAN_COS = "adaptive.time.pattern.meanCos";
+    private static final String ATTR_MEAN_SIN = "adaptive-time-pattern-meanSin";
+    private static final String ATTR_MEAN_COS = "adaptive-time-pattern-meanCos";
 
     // EWMA smoothing factor - lower values give more weight to history
     private static final double ALPHA = 0.15;
