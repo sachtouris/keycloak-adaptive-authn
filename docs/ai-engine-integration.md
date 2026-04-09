@@ -8,7 +8,7 @@ The AI engine provider is configured via the Keycloak SPI option:
 KC_SPI_AI_ENGINE__PROVIDER=claude
 ```
 
-Available providers: `granite` (default), `gpt`, `claude`, `gemini`.
+Available providers: `gpt`, `claude`, `gemini`, `granite` (deprecated).
 
 ## OpenAI ChatGPT
 
@@ -45,6 +45,16 @@ Available providers: `granite` (default), `gpt`, `claude`, `gemini`.
 | `CLAUDE_API_MODEL` | No | `claude-haiku-4-5-20251001` |
 | `CLAUDE_API_VERSION` | No | `2023-06-01` |
 | `CLAUDE_API_ENABLE_CACHING` | No | `true` |
+
+## IBM Granite (Deprecated)
+
+| Environment Variable | Required | Default |
+|---|---|---|
+| `GRANITE_API_KEY` | Yes | - |
+| `GRANITE_API_URL` | Yes | - (must include `/chat/completions` suffix) |
+| `GRANITE_API_MODEL` | No | `granite-8b-code-instruct-128k` |
+
+> **Note:** IBM Granite may be slower than other providers, so the timeout for risk evaluations may need to be increased.
 
 ## Google Gemini
 

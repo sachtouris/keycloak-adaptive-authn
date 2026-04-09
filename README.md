@@ -60,15 +60,15 @@ For more information and quickstart, refer to the [Start guide](docs/start.md).
       </a>
     </td>
     <td>
-      <b><a href="https://www.ibm.com/granite">IBM Granite</a></b> (experimental)<br/>
+      <b><a href="https://www.ibm.com/granite">IBM Granite</a></b> (deprecated)<br/>
       Default model: <code>granite-8b-code-instruct-128k</code><br/>
     </td>
   </tr>
 </table>
 
-For more information and setup, see the <a href="docs/ai-engine-integration.md">AI Integration Guide</a>.
+Risk is evaluated **locally** as much as possible. AI engines are only used for complex evaluations that require deeper contextual analysis. Since AI services are **external dependencies**, all user data (IP addresses, device info) is **automatically anonymized** before being sent to prevent information leakage. See [Privacy and Anonymization Guide](docs/privacy-and-anonymization.md) for details.
 
-**Privacy & GDPR Compliance:** All user data (IP addresses, device info) is automatically anonymized before being sent to AI services. See [Privacy and Anonymization Guide](docs/privacy-and-anonymization.md) for details.
+For more information and setup, see the <a href="docs/ai-engine-integration.md">AI Integration Guide</a>.
 
 ## Supported Keycloak Versions
 
