@@ -66,9 +66,7 @@ public class LogOddsRiskAlgorithm implements RiskScoreAlgorithm {
     }
 
     private double getBias(@Nonnull RealmModel realm) {
-        var storedBias = realm.getAttribute(BIAS_CONFIG);
-        logger.debugf("getBias: realm attribute '%s' = '%s' (default: %f)", BIAS_CONFIG, storedBias, defaultBias);
-        return Optional.ofNullable(storedBias)
+        return Optional.ofNullable(realm.getAttribute(BIAS_CONFIG))
                 .map(Double::parseDouble)
                 .orElse(defaultBias);
     }
