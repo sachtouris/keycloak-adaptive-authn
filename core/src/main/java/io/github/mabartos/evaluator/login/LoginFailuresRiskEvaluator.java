@@ -105,7 +105,7 @@ public class LoginFailuresRiskEvaluator extends AbstractRiskEvaluator {
         }
 
         if (!currentIp.equals(lastIP)) {
-            return Risk.of(HIGH, "Request from different IP address");
+            return Risk.of(MEDIUM, "Request from different IP address");
         }
 
         return Risk.of(NONE);

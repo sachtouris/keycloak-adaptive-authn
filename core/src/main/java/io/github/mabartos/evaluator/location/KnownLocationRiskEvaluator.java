@@ -18,7 +18,7 @@ import org.keycloak.models.UserModel;
 
 import java.util.Set;
 
-import static io.github.mabartos.spi.level.Risk.Score.HIGH;
+import static io.github.mabartos.spi.level.Risk.Score.MEDIUM;
 import static io.github.mabartos.spi.level.Risk.Score.NEGATIVE_LOW;
 import static io.github.mabartos.spi.level.Risk.Score.VERY_SMALL;
 
@@ -82,6 +82,6 @@ public class KnownLocationRiskEvaluator extends AbstractRiskEvaluator {
             return Risk.of(VERY_SMALL, "Same country, different city - minor anomaly");
         }
 
-        return Risk.of(HIGH, "Completely new country");
+        return Risk.of(MEDIUM, "Completely new country");
     }
 }
