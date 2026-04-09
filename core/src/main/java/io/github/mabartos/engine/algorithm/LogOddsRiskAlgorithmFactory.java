@@ -76,7 +76,7 @@ public class LogOddsRiskAlgorithmFactory implements RiskScoreAlgorithmFactory {
                         "Negative values lower baseline risk (e.g. -6.9 for ~0.1% fraud rate), " +
                         "positive values raise it (e.g. -2.2 for ~10% fraud rate). " +
                         "Default: " + DEFAULT_BIAS)
-                .type(ProviderConfigProperty.STRING_TYPE)
+                .type(ProviderConfigProperty.NUMBER_TYPE)
                 .defaultValue(DEFAULT_BIAS)
                 .add()
                 .build();
