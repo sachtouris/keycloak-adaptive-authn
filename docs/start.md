@@ -105,7 +105,7 @@ podman run -p 8080:8080 \
 
 ## Realm Setup
 
-If you want to use the extension on your **own existing realm** instead of the provided example realm, see the [Realm Setup Guide](realm-setup.md) for the required Events and Brute Force configuration.
+If you want to use the extension on your **own existing realm** instead of the provided example realm, see the [Realm Setup Guide](realm-setup.md) for the required Events configuration.
 
 ## Show example flow
 
