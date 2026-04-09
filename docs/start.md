@@ -80,6 +80,7 @@ COPY core/target/keycloak-adaptive-authn-*.jar /opt/keycloak/providers/
 
 ENV KC_HEALTH_ENABLED=true
 ENV KC_TRACING_ENABLED=true
+ENV KC_FEATURES=declarative-ui
 
 RUN /opt/keycloak/bin/kc.sh build
 

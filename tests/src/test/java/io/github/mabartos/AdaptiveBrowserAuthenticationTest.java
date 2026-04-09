@@ -96,7 +96,8 @@ public class AdaptiveBrowserAuthenticationTest {
             builder.log().categoryLevel("io.github.mabartos.keycloak.authentication", "trace");
             // disabled for now due to the https://github.com/keycloak/keycloak/issues/47685
             // .option("tracing-enabled", "true");
-            return builder.dependency("io.github.mabartos", "keycloak-adaptive-authn");
+            return builder.dependency("io.github.mabartos", "keycloak-adaptive-authn")
+                    .option("features", "declarative-ui");
         }
     }
 }

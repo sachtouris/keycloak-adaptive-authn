@@ -2,7 +2,21 @@
 
 If you are adding the extension to an **existing realm** (rather than importing the provided `adaptive-realm.json`), you need to configure the following settings.
 
-### 1. Events Configuration
+### 1. Server Configuration
+
+The `declarative-ui` feature must be enabled on the Keycloak server. It is required for the **Risk-based policies** configuration tab in the Admin Console.
+
+```
+kc.sh start --features=declarative-ui
+```
+
+Or via environment variable:
+
+```
+KC_FEATURES=declarative-ui
+```
+
+### 2. Events Configuration
 
 The extension relies on login events to track authentication attempts and compute risk scores.
 
