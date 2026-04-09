@@ -1,5 +1,9 @@
 ## Getting started
 
+Let's try the Adaptive Authentication! 🚀
+
+<img src="img/adaptive-authn-login-screen.png" alt="Adaptive Authentication Login Screen" width="500">
+
 ### Building from Source
 
 To build it from source, execute this command:
