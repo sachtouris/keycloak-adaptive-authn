@@ -41,15 +41,22 @@
             <outputDirectory>conf/</outputDirectory>
             <includes>
                 <include>application.properties</include>
-                <include>keycloak.conf</include>
             </includes>
         </fileSet>
 
         <fileSet>
-            <directory>src/main/resources/</directory>
+            <directory>src/main/assembly/</directory>
             <outputDirectory>data/import/</outputDirectory>
             <includes>
                 <include>adaptive-realm.json</include>
+            </includes>
+        </fileSet>
+
+        <fileSet>
+            <directory>src/main/assembly/</directory>
+            <outputDirectory>providers/</outputDirectory>
+            <includes>
+                <include>adaptive-authn-theme.jar</include>
             </includes>
         </fileSet>
     </fileSets>

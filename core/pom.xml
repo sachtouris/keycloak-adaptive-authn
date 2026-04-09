@@ -121,10 +121,10 @@
                                 <argument>-c</argument>
                                 <argument>
                                     bash ${keycloak.exec.distribution.path}/bin/kc.sh export \
-                                        --dir=${project.basedir}/src/main/resources \
+                                        --dir=${project.basedir}/src/main/assembly \
                                         --users=realm_file \
                                         --realm=adaptive \
-                                    &amp;&amp; cp ${project.basedir}/src/main/resources/adaptive-realm.json \
+                                    &amp;&amp; cp ${project.basedir}/src/main/assembly/adaptive-realm.json \
                                           ${project.basedir}/../tests/src/test/resources/test-adaptive-realm.json
                                 </argument>
                             </arguments>

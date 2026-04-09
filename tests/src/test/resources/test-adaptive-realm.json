@@ -2,7 +2,7 @@
   "id" : "0360888e-965c-4a26-9fda-50c18f5f5bed",
   "realm" : "adaptive",
   "displayName" : "Adaptive",
-  "displayNameHtml" : "",
+  "displayNameHtml" : "<div class=\"kc-logo-text\"><span>Keycloak Adaptive Authn</span></div>",
   "notBefore" : 0,
   "defaultSignatureAlgorithm" : "RS256",
   "revokeRefreshToken" : false,
@@ -1206,6 +1206,10 @@
     "strictTransportSecurity" : "max-age=31536000; includeSubDomains"
   },
   "smtpServer" : { },
+  "loginTheme" : "quick-theme",
+  "accountTheme" : "",
+  "adminTheme" : "",
+  "emailTheme" : "",
   "eventsEnabled" : true,
   "eventsExpiration" : 63072000,
   "eventsListeners" : [ "jboss-logging", "login-events-adaptive-authn" ],
@@ -1255,7 +1259,7 @@
       "subType" : "authenticated",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "saml-user-property-mapper", "saml-role-list-mapper", "oidc-usermodel-property-mapper", "oidc-full-name-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-user-attribute-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-sha256-pairwise-sub-mapper", "saml-user-property-mapper", "oidc-usermodel-property-mapper", "oidc-address-mapper", "oidc-usermodel-attribute-mapper", "saml-role-list-mapper", "saml-user-attribute-mapper", "oidc-full-name-mapper" ]
       }
     }, {
       "id" : "177c422a-5da4-495f-97bb-365930521275",
@@ -1264,7 +1268,7 @@
       "subType" : "anonymous",
       "subComponents" : { },
       "config" : {
-        "allowed-protocol-mapper-types" : [ "oidc-usermodel-property-mapper", "saml-user-property-mapper", "oidc-sha256-pairwise-sub-mapper", "saml-role-list-mapper", "oidc-usermodel-attribute-mapper", "oidc-full-name-mapper", "oidc-address-mapper", "saml-user-attribute-mapper" ]
+        "allowed-protocol-mapper-types" : [ "oidc-usermodel-property-mapper", "saml-user-property-mapper", "oidc-usermodel-attribute-mapper", "saml-user-attribute-mapper", "oidc-full-name-mapper", "saml-role-list-mapper", "oidc-address-mapper", "oidc-sha256-pairwise-sub-mapper" ]
       }
     }, {
       "id" : "f03f1114-52b9-4eda-8519-d379aab18f59",
@@ -1339,9 +1343,9 @@
         "adaptive-evaluator-enabled-AiAccountTakeoverEvaluator" : [ "true" ],
         "adaptive-evaluator-enabled-BrowserRiskEvaluator" : [ "true" ],
         "adaptive-evaluator-enabled-InitLocationRiskEvaluator" : [ "true" ],
-        "adaptive-engine-timeout" : [ "2500" ],
-        "adaptive-engine-enabled" : [ "true" ],
         "adaptive-evaluator-enabled-LoginEventIpAddressRiskEvaluator" : [ "true" ],
+        "adaptive-engine-enabled" : [ "true" ],
+        "adaptive-engine-timeout" : [ "2500" ],
         "adaptive-evaluator-enabled-LoginFailuresRiskEvaluator" : [ "true" ],
         "adaptive-evaluator-enabled-KnownLocationRiskEvaluator" : [ "true" ],
         "adaptive-evaluator-enabled-ClientRoleRiskEvaluator" : [ "true" ],
@@ -1349,15 +1353,15 @@
         "adaptive-evaluator-enabled-FailedLoginPatternRiskEvaluator" : [ "true" ],
         "adaptive-evaluator-enabled-ClientSensitivityRiskEvaluator" : [ "true" ],
         "adaptive-evaluator-enabled-DefaultUserRoleEvaluator" : [ "true" ],
+        "realm" : [ "adaptive" ],
         "adaptive-engine-scoreAlgorithm" : [ "log-odds" ],
         "adaptive-evaluator-enabled-ConcurrentSessionRiskEvaluator" : [ "true" ],
-        "realm" : [ "adaptive" ],
         "riskLevelProvider" : [ "Risk levels - 3 levels (Low, Medium, High)" ],
         "adaptive-engine-retries" : [ "3" ],
         "adaptive-evaluator-enabled-RecaptchaRiskEvaluator" : [ "true" ],
         "adaptive-evaluator-enabled-OperatingSystemRiskEvaluator" : [ "true" ],
-        "adaptive-evaluator-enabled-UserActionsRiskEvaluator" : [ "true" ],
-        "adaptive-evaluator-enabled-TimePatternRiskEvaluator" : [ "true" ]
+        "adaptive-evaluator-enabled-TimePatternRiskEvaluator" : [ "true" ],
+        "adaptive-evaluator-enabled-UserActionsRiskEvaluator" : [ "true" ]
       }
     } ]
   },
@@ -2478,29 +2482,31 @@
   "firstBrokerLoginFlow" : "first broker login",
   "attributes" : {
     "cibaBackchannelTokenDeliveryMode" : "poll",
+    "clientOfflineSessionIdleTimeout" : "0",
+    "cibaExpiresIn" : "120",
+    "adaptive-evaluator-enabled-KnownLocationRiskEvaluator" : "true",
+    "saml.signature.algorithm" : "",
+    "frontendUrl" : "",
+    "adaptive-engine-retries" : "3",
+    "adaptive-evaluator-enabled-OperatingSystemRiskEvaluator" : "true",
     "cibaAuthRequestedUserHint" : "login_hint",
     "clientOfflineSessionMaxLifespan" : "0",
     "oauth2DevicePollingInterval" : "5",
     "clientSessionIdleTimeout" : "0",
     "adaptive-evaluator-enabled-BrowserRiskEvaluator" : "true",
-    "clientOfflineSessionIdleTimeout" : "0",
     "adaptive-engine-timeout" : "2500",
     "adaptive-engine-enabled" : "true",
     "cibaInterval" : "5",
     "realmReusableOtpCode" : "false",
     "adaptive-evaluator-enabled-LoginFailuresRiskEvaluator" : "true",
-    "cibaExpiresIn" : "120",
     "oauth2DeviceCodeLifespan" : "600",
-    "adaptive-evaluator-enabled-KnownLocationRiskEvaluator" : "true",
     "parRequestUriLifespan" : "60",
     "clientSessionMaxLifespan" : "0",
-    "frontendUrl" : "",
     "acr.loa.map" : "{}",
     "adminEventsExpiration" : "",
     "adaptive-evaluator-enabled-DefaultUserRoleEvaluator" : "true",
-    "adaptive-engine-retries" : "3",
-    "riskLevelProvider" : "simple-risk-levels",
-    "adaptive-evaluator-enabled-OperatingSystemRiskEvaluator" : "true"
+    "darkMode" : "true",
+    "riskLevelProvider" : "simple-risk-levels"
   },
   "keycloakVersion" : "26.5.7",
   "userManagedAccessAllowed" : false,
