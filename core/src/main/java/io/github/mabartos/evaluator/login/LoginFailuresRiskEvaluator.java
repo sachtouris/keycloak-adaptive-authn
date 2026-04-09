@@ -133,7 +133,7 @@ public class LoginFailuresRiskEvaluator extends AbstractRiskEvaluator {
                 .collect(Collectors.toSet());
 
         if (knownSuccessfulIps.contains(currentIp)) {
-            return Risk.of(SMALL, currentRisk.reason()
+            return Risk.of(SMALL, currentRisk.getReason().orElse("")
                     + " (mitigated: current IP matches a known successful login)");
         }
 
@@ -180,7 +180,7 @@ public class LoginFailuresRiskEvaluator extends AbstractRiskEvaluator {
 
         // If risk is HIGH or VERY_HIGH, check if the current IP is a known successful login IP.
         // This prevents DoS attacks where an attacker floods failures to block a legitimate user.
-        if (resultRisk.score() == HIGH || resultRisk.score() == VERY_HIGH) {
+        if (resultRisk.getScore() == HIGH || resultRisk.getScore() == VERY_HIGH) {
             resultRisk = mitigateWithKnownIp(resultRisk, realm, knownUser);
         }
 
