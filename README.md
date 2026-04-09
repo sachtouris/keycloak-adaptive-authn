@@ -15,8 +15,6 @@
 
 <img src="docs/img/github-risk-engine.png" alt="Risk Engine" width="1050"></img>
 
-For more information and quickstart, refer to the [Start guide](docs/start.md).
-
 ### Supported AI Engines
 
 <table>
