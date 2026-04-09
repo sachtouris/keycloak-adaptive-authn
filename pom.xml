@@ -185,7 +185,7 @@
                                     <argument>--verbose</argument>
                                     <!--disabled for now due to the https://github.com/keycloak/keycloak/issues/47685 -->
                                     <argument>--tracing-enabled=false</argument>
-                                    <argument>--log-console-include-trace=false</argument>
+                                    <!--<argument>&#45;&#45;log-console-include-trace=false</argument>-->
                                     <argument>
                                         --log-level=io.github.mabartos:debug,io.quarkus.opentelemetry.runtime.exporter.otlp.sender:error,io.opentelemetry.exporter.internal.grpc:error
                                     </argument>
