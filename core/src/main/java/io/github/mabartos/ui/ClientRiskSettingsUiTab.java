@@ -41,8 +41,8 @@ import static io.github.mabartos.evaluator.client.ClientSensitivityRiskEvaluator
 /**
  * Custom UI tab in the client detail page to configure client-specific risk sensitivity.
  */
-public class ClientRiskSensitivityUiTab implements UiTabProvider, UiTabProviderFactory<ComponentModel> {
-    private static final Logger logger = Logger.getLogger(ClientRiskSensitivityUiTab.class);
+public class ClientRiskSettingsUiTab implements UiTabProvider, UiTabProviderFactory<ComponentModel> {
+    private static final Logger logger = Logger.getLogger(ClientRiskSettingsUiTab.class);
 
     private static final String SENSITIVITY_CONFIG = "riskSensitivity";
 
@@ -53,7 +53,7 @@ public class ClientRiskSensitivityUiTab implements UiTabProvider, UiTabProviderF
 
     @Override
     public String getId() {
-        return "Risk-based policies";
+        return "Risk-based settings";
     }
 
     @Override
