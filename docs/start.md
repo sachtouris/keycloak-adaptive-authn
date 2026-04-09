@@ -71,24 +71,37 @@ rm -rf ~/.m2/repository/.cache/keycloak/
 
 ### Container
 
-You can build your own containerized Keycloak installation with this extension as described in this
-guide: [Add Keycloak Adaptive Authentication extension](https://github.com/mabartos/keycloak-quarkus-extensions/blob/main/examples/keycloak-adaptive-authn.md).
+You can build a custom Keycloak container image with the extension by adding the generated JAR to the `/opt/keycloak/providers` directory:
 
-**NOTE**: This is an old release with the authentication policies that are not part of this repository anymore.
-Recommended way is to build it from source for now or follow steps on the guide mentioned above.
+```dockerfile
+FROM quay.io/keycloak/keycloak:latest AS builder
 
-You can use the container image by running:
+COPY core/target/keycloak-adaptive-authn-*.jar /opt/keycloak/providers/
 
-    podman run -p 8080:8080 quay.io/mabartos/keycloak-adaptive-all start
+ENV KC_HEALTH_ENABLED=true
+ENV KC_TRACING_ENABLED=true
 
-This command starts Keycloak exposed on the local port 8080 (`localhost:8080`).
+RUN /opt/keycloak/bin/kc.sh build
 
-In order to see the functionality in action, navigate to `localhost:8080/realms/authn-policy-adaptive/account`.
+FROM quay.io/keycloak/keycloak:latest
+COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
-ℹ️ **INFO:** If you want to use the OpenAI capabilities, set the environment variables (by setting `-e OPEN_AI_API_*`)
-for the image described in the [README](adaptive/README.md#integration-with-openai) of the `adaptive` module..
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
+```
 
-ℹ️ **INFO:** If you have installed Docker, use `docker` instead of `podman`.
+For more details on optimized images, see the [Keycloak Container Guide](https://www.keycloak.org/server/containers#_writing_your_optimized_keycloak_containerfile).
+
+Build and run:
+
+```shell
+podman build -t keycloak-adaptive .
+podman run -p 8080:8080 \
+  -e KC_BOOTSTRAP_ADMIN_USERNAME=admin \
+  -e KC_BOOTSTRAP_ADMIN_PASSWORD=admin \
+  keycloak-adaptive start-dev
+```
+
+**INFO:** If you have installed Docker, use `docker` instead of `podman`.
 
 ## Realm Setup
 
