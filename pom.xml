@@ -153,23 +153,6 @@
                     </configuration>
                     <executions>
                         <execution>
-                            <id>export-realm</id>
-                            <phase>none</phase>
-                            <goals>
-                                <goal>exec</goal>
-                            </goals>
-                            <configuration>
-                                <executable>bash</executable>
-                                <arguments>
-                                    <argument>${keycloak.exec.distribution.path}/bin/kc.sh</argument>
-                                    <argument>export</argument>
-                                    <argument>--dir=src/main/resources</argument>
-                                    <argument>--users=realm_file</argument>
-                                    <argument>--realm=adaptive</argument>
-                                </arguments>
-                            </configuration>
-                        </execution>
-                        <execution>
                             <id>start-server</id>
                             <phase>none</phase>
                             <goals>
