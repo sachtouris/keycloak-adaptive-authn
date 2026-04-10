@@ -20,9 +20,9 @@ import io.github.mabartos.spi.engine.RiskEngine;
 import io.github.mabartos.spi.engine.RiskScoreAlgorithm;
 import io.github.mabartos.spi.engine.StoredRiskProvider;
 import io.github.mabartos.spi.level.AdvancedRiskLevels;
-import io.github.mabartos.spi.level.ResultRisk;
 import io.github.mabartos.spi.level.RiskLevel;
 import io.github.mabartos.spi.level.SimpleRiskLevels;
+import io.github.mabartos.ui.RiskBasedPoliciesUiTab;
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.authenticators.conditional.ConditionalAuthenticator;
@@ -78,28 +78,50 @@ public class RiskLevelCondition implements ConditionalAuthenticator {
 
             String description = isAdvanced ? AdvancedRiskLevels.getDescription() : SimpleRiskLevels.getDescription();
 
-            var risk = Optional.ofNullable(algorithm.getOverallRisk())
-                    .filter(ResultRisk::isValid)
-                    .orElseThrow(() -> new IllegalStateException("No risk has been evaluated or invalid risk score. Did you forget to add Risk Engine authenticator to the flow?"));
-
             var level = Optional.ofNullable(authConfig.getConfig().get(AbstractRiskLevelConditionFactory.LEVEL_CONFIG))
                     .filter(StringUtil::isNotBlank)
                     .flatMap(f -> riskLevels.stream().filter(g -> g.name().equals(f)).findAny())
                     .orElseThrow(() -> new IllegalStateException("Cannot find specified level: " + authConfig.getConfig().get(AbstractRiskLevelConditionFactory.LEVEL_CONFIG)));
 
-            var matches = level.matchesRisk(risk.getScore());
+            var overallRisk = algorithm.getOverallRisk();
+            boolean matches;
+
+            if (overallRisk == null || !overallRisk.isValid()) {
+                var fallbackLevel = getFallbackLevel(context.getRealm(), riskLevels);
+                logger.warnf("Risk evaluation failed or returned invalid result. Using fallback risk level: %s", fallbackLevel);
+                matches = level.name().equals(fallbackLevel);
+            } else {
+                matches = level.matchesRisk(overallRisk.getScore());
+            }
 
             if (matches) {
                 logger.debugf("Using %s risk levels from algorithm: %s", description, algorithm.getClass().getSimpleName());
-                logger.debugf("Risk Level Condition (%s) matches the evaluated level: %f < %f <= %f", level.name(), level.lowestRiskValue(), risk.getScore(), level.highestRiskValue());
+                if (overallRisk != null && overallRisk.isValid()) {
+                    logger.debugf("Risk Level Condition (%s) matches the evaluated level: %f < %f <= %f", level.name(), level.lowestRiskValue(), overallRisk.getScore(), level.highestRiskValue());
+                }
                 return true;
             } else {
                 logger.tracef("Using %s risk levels from algorithm: %s", description, algorithm.getClass().getSimpleName());
-                logger.tracef("Risk Level Condition (%s) DOES NOT MATCH the evaluated level: %f", level.name(), risk.getScore());
+                if (overallRisk != null && overallRisk.isValid()) {
+                    logger.tracef("Risk Level Condition (%s) DOES NOT MATCH the evaluated level: %f", level.name(), overallRisk.getScore());
+                }
                 return false;
             }
         }
         return false;
+    }
+
+    private String getFallbackLevel(RealmModel realm, List<RiskLevel> riskLevels) {
+        String configKey = isAdvanced
+                ? RiskBasedPoliciesUiTab.ADVANCED_FALLBACK_LEVEL_CONFIG
+                : RiskBasedPoliciesUiTab.SIMPLE_FALLBACK_LEVEL_CONFIG;
+        String defaultFallback = SimpleRiskLevels.MEDIUM;
+
+        String fallback = realm.getAttribute(configKey);
+        if (StringUtil.isNotBlank(fallback) && riskLevels.stream().anyMatch(l -> l.name().equals(fallback))) {
+            return fallback;
+        }
+        return defaultFallback;
     }
 
     @Override

@@ -17,6 +17,8 @@
 package io.github.mabartos.ui;
 
 import io.github.mabartos.level.Trust;
+import io.github.mabartos.spi.level.AdvancedRiskLevels;
+import io.github.mabartos.spi.level.SimpleRiskLevels;
 import org.jboss.logging.Logger;
 import org.keycloak.Config;
 import io.github.mabartos.evaluator.EvaluatorUtils;
@@ -62,6 +64,8 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
 
     public static final String RISK_BASED_AUTHN_ENABLED_CONFIG = "adaptive-engine-enabled";
     public static final String RISK_SCORE_ALGORITHM_CONFIG = "adaptive-engine-scoreAlgorithm";
+    public static final String SIMPLE_FALLBACK_LEVEL_CONFIG = "adaptive-engine-simpleFallbackLevel";
+    public static final String ADVANCED_FALLBACK_LEVEL_CONFIG = "adaptive-engine-advancedFallbackLevel";
 
     @Override
     public String getId() {
@@ -93,6 +97,8 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
         storeRealmAttribute(model, realm, EVALUATOR_TIMEOUT_CONFIG, "onCreate");
         storeRealmAttribute(model, realm, EVALUATOR_RETRIES_CONFIG, "onCreate");
         storeRealmAttribute(model, realm, RISK_SCORE_ALGORITHM_CONFIG, "onCreate");
+        storeRealmAttribute(model, realm, SIMPLE_FALLBACK_LEVEL_CONFIG, "onCreate");
+        storeRealmAttribute(model, realm, ADVANCED_FALLBACK_LEVEL_CONFIG, "onCreate");
 
         // Set algorithm property defaults as realm attributes
         algorithmFactories.forEach(algFactory -> algFactory.getConfigProperties().forEach(prop -> {
@@ -138,6 +144,8 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
         storeRealmAttribute(newModel, realm, EVALUATOR_TIMEOUT_CONFIG, "onUpdate");
         storeRealmAttribute(newModel, realm, EVALUATOR_RETRIES_CONFIG, "onUpdate");
         storeRealmAttribute(newModel, realm, RISK_SCORE_ALGORITHM_CONFIG, "onUpdate");
+        storeRealmAttribute(newModel, realm, SIMPLE_FALLBACK_LEVEL_CONFIG, "onUpdate");
+        storeRealmAttribute(newModel, realm, ADVANCED_FALLBACK_LEVEL_CONFIG, "onUpdate");
 
         algorithmFactories.forEach(algFactory -> algFactory.getConfigProperties().forEach(prop -> {
             var oldVal = oldModel.get(prop.getName());
@@ -187,6 +195,9 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
         validateInteger(model.get(EVALUATOR_TIMEOUT_CONFIG), "Timeout");
         validateInteger(model.get(EVALUATOR_RETRIES_CONFIG), "Retries");
 
+        validateFallbackLevel(model.get(SIMPLE_FALLBACK_LEVEL_CONFIG), SimpleRiskLevels.getSimpleLevelNames(), "Simple fallback risk level");
+        validateFallbackLevel(model.get(ADVANCED_FALLBACK_LEVEL_CONFIG), AdvancedRiskLevels.getAdvancedLevelNames(), "Advanced fallback risk level");
+
         riskEvaluatorFactories.forEach(f -> {
             try {
                 var value = model.get(getTrustConfig(f.evaluatorClass()));
@@ -226,6 +237,13 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
         }
     }
 
+    protected void validateFallbackLevel(String value, List<String> validLevels, String attributeDisplayName) {
+        if (StringUtil.isNotBlank(value) && !validLevels.contains(value)) {
+            throw new ComponentValidationException(
+                    String.format("%s must be one of: %s", attributeDisplayName, String.join(", ", validLevels)));
+        }
+    }
+
     @Override
     public List<ProviderConfigProperty> getConfigProperties() {
         final List<ProviderConfigProperty> list = ProviderConfigurationBuilder.create().property()
@@ -256,6 +274,22 @@ public class RiskBasedPoliciesUiTab implements UiTabProvider, UiTabProviderFacto
                 .type(ProviderConfigProperty.LIST_TYPE)
                 .options(algorithmFactories.stream().map(RiskScoreAlgorithmFactory::getId).toList())
                 .defaultValue(algorithmFactories.isEmpty() ? null : algorithmFactories.getFirst().getId())
+                .add()
+                .property()
+                .name(SIMPLE_FALLBACK_LEVEL_CONFIG)
+                .label("Fallback risk level (simple)")
+                .helpText("Risk level used when the risk engine fails to evaluate. Applied to simple (3-level) conditions.")
+                .type(ProviderConfigProperty.LIST_TYPE)
+                .options(SimpleRiskLevels.getSimpleLevelNames())
+                .defaultValue(SimpleRiskLevels.MEDIUM)
+                .add()
+                .property()
+                .name(ADVANCED_FALLBACK_LEVEL_CONFIG)
+                .label("Fallback risk level (advanced)")
+                .helpText("Risk level used when the risk engine fails to evaluate. Applied to advanced (5-level) conditions.")
+                .type(ProviderConfigProperty.LIST_TYPE)
+                .options(AdvancedRiskLevels.getAdvancedLevelNames())
+                .defaultValue(AdvancedRiskLevels.MEDIUM)
                 .add()
                 .build();
 
